@@ -11,3 +11,6 @@ SDL2_ttf: https://www.libsdl.org/projects/SDL_ttf/
 
 Download them, create folder "SDL2" in /engine directory, and put the content of downloaded archives into it.
 The final structure should contain /engine/SDL2/include and /engine/SDL2/lib
+
+Basilisk sprite taken from:
+http://pousse.rapiere.free.fr/tome/

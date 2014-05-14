@@ -216,6 +216,9 @@
     <ClInclude Include="..\..\engine\base\graph.h">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\engine\base\Timer.h">
+      <Filter>Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\engine\Test\main.cpp">
@@ -225,6 +228,9 @@
       <Filter>Base</Filter>
     </ClCompile>
     <ClCompile Include="..\..\engine\base\graph.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\engine\base\Timer.cpp">
       <Filter>Base</Filter>
     </ClCompile>
   </ItemGroup>

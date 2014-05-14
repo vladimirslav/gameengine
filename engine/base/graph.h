@@ -12,10 +12,6 @@
 
 extern const int NORMAL_FONT_SIZE;
 
-extern const SDL_Color F_WHITE;
-extern const SDL_Color F_BLACK;
-extern const SDL_Color F_RED;
-
 class Graph
 {
 private:
@@ -25,45 +21,35 @@ private:
     SDL_DisplayMode displayMode;
     SDL_Window* screen;
 
-    SDL_Surface* screenSurface;
-    SDL_Texture* screenTexture;
-
-    Uint32 bgColor;
+    SDL_Color bgColor;
     TTF_Font* headFont;
     TTF_Font* normalFont;
 
     SDL_Renderer* renderer;
-    SDL_Rect surfaceRect;
 
-public:
-    Uint32 C_WHITE;
-    Uint32 C_BLACK;
-    Uint32 C_RED;
-
-    SDL_Color F_WHITE;
-    SDL_Color F_BLACK;
-    SDL_Color F_RED;
+    bool fontLoaded;
 
 public:
     Graph(int w, int h, const std::string fontFile, const std::string caption);
     ~Graph();
     const int &GetWidth() const;
     const int &GetHeight() const;
-    SDL_Texture* LoadImage(std::string filename);
-    void SetBgColor(Uint32 color);
+    SDL_Texture* LoadTexture(std::string filename);
+    SDL_Texture* LoadTextureAlphaPink(std::string filename);
+    void SetBgColor(SDL_Color color);
     void Flip();
-    void FillScreen(Uint32 color);
+    void FillScreen(SDL_Color color);
     void ClrScr();
-    void PutPixel(int x, int y, Uint32 color);
+    void PutPixel(int x, int y, SDL_Color color);
     void WriteHeading(std::string, int x, int y);
     void WriteNormal(std::string, int x, int y);
     void WriteNormal(std::string, int x, int y, SDL_Color color);
-    void FillRect(int x1, int y1, int x2, int y2, Uint32 color);
-    void FillRect(int x1, int y1, int x2, int y2, int r, int g, int b, int alph);
-    void DrawSprite(int x, int y, SDL_Surface* source, SDL_Rect* clip);
+    void FillRect(int x1, int y1, int x2, int y2, SDL_Color color);
+
+    void DrawTexture(int x, int y, SDL_Texture* texture);
 private:
     void WriteText(TTF_Font* f, std::string, int x, int y, SDL_Color color);
-    void ApplySurface(int x, int y, SDL_Surface* source, SDL_Surface *dest, SDL_Rect* clip);
+
 };
 
 #endif
