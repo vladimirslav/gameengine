@@ -154,7 +154,25 @@ void Graph::DrawTexture(int x, int y, SDL_Texture* texture)
     dest.x = x;
     dest.y = y;
     SDL_assert_release(SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h) == 0);
-    SDL_RenderCopy(renderer, texture, NULL, &dest);
+    SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, &dest) == 0);
+}
+
+void Graph::DrawTexture(int x, int y, SDL_Texture* texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip)
+{
+    SDL_Rect dest;
+    dest.x = x;
+    dest.y = y;
+    if (texPart != NULL)
+    {
+        dest.w = texPart->w;
+        dest.h = texPart->h;
+    }
+    else
+    {
+        SDL_assert_release(SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h) == 0);
+    }
+    
+    SDL_assert_release(SDL_RenderCopyEx(renderer, texture, texPart, &dest, angle, NULL, flip) == 0);
 }
 
 void Graph::FillRect(int x1, int y1, int x2, int y2, SDL_Color color)

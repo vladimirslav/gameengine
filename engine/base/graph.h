@@ -47,6 +47,7 @@ public:
     void FillRect(int x1, int y1, int x2, int y2, SDL_Color color);
 
     void DrawTexture(int x, int y, SDL_Texture* texture);
+    void DrawTexture(int x, int y, SDL_Texture* texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip);
 private:
     void WriteText(TTF_Font* f, std::string, int x, int y, SDL_Color color);
 
