@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\engine\base\graph.h" />
+    <ClInclude Include="..\..\engine\base\particles.h" />
     <ClInclude Include="..\..\engine\base\routines.h" />
     <ClInclude Include="..\..\engine\base\Timer.h" />
     <ClInclude Include="..\..\engine\SDL2\include\begin_code.h" />
@@ -91,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\engine\base\graph.cpp" />
+    <ClCompile Include="..\..\engine\base\particles.cpp" />
     <ClCompile Include="..\..\engine\base\routines.cpp" />
     <ClCompile Include="..\..\engine\base\Timer.cpp" />
     <ClCompile Include="..\..\engine\Test\main.cpp" />

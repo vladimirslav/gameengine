@@ -14,3 +14,5 @@ The final structure should contain /engine/SDL2/include and /engine/SDL2/lib
 
 Basilisk sprite taken from:
 http://pousse.rapiere.free.fr/tome/
+Dust sprite taken from:
+http://spritefx.blogspot.com/2013/04/sprite-dust.html
