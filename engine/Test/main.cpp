@@ -85,7 +85,8 @@ public:
 
 };
 
-int main(int argc, char** argv){
+int main(int argc, char** argv)
+{
     SDL_SetAssertionHandler(EngineRoutines::handler, NULL);
     Graph g(SCREEN_W, SCREEN_H, "", "test");
     Timer timer;

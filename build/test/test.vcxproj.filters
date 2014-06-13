@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="testdata">
+      <UniqueIdentifier>{b9439be9-b9cb-49a0-9907-7abb6e5f86cb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\engine\Test\main.cpp">
+      <Filter>testdata</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

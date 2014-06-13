@@ -4,9 +4,6 @@
     <Filter Include="SDL2">
       <UniqueIdentifier>{e80b8706-458c-496c-a2e7-cffaaca2bf88}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Test">
-      <UniqueIdentifier>{96b0cdbb-e5fd-47de-855c-6ae88793c284}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Base">
       <UniqueIdentifier>{d2b517f1-bca6-4ca8-b618-403d9ec153f2}</UniqueIdentifier>
     </Filter>
@@ -224,9 +221,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\engine\Test\main.cpp">
-      <Filter>Test</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\engine\base\routines.cpp">
       <Filter>Base</Filter>
     </ClCompile>
