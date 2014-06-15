@@ -3,6 +3,8 @@
 #include "..\base\graph.h"
 #include "..\base\Timer.h"
 #include "..\base\particles.h"
+#include "..\base\input.h"
+#include "..\base\gamescreen.h"
 
 static const int FRAMES_PER_SECOND = 60;
 static const int SCREEN_H = 480;
@@ -85,44 +87,80 @@ public:
 
 };
 
-int main(int argc, char** argv)
+class MainScreen : public GameScreen
 {
-    SDL_SetAssertionHandler(EngineRoutines::handler, NULL);
-    Graph g(SCREEN_W, SCREEN_H, "", "test");
-    Timer timer;
-    timer.Reset();
 
-
-    SDL_Texture* basilisk = g.LoadTextureAlphaPink("res\\sprite\\basilisk.png");
-    SDL_Texture* dust = g.LoadTextureAlphaPink("res\\sprite\\dust.png");
-    SDL_Color bgcolor;
-    bgcolor.a = 255;
-    bgcolor.r = 0;
-    bgcolor.g = 127;
-    bgcolor.b = 0;
-    g.SetBgColor(bgcolor);
-    bool quit = false;
-
+private:
     int p_x = 0;
     int p_y = 0;
-
+    bool quit = false;
     double face_right = false;
     double angle = 45;
-
     Timer particle_timer;
-    particle_timer.Reset();
+    SDL_Texture* basilisk = nullptr;
+    SDL_Texture* dust = nullptr;
 
-    while (!quit)
+public:
+
+    MainScreen(Graph* g) : GameScreen(g) 
     {
-        timer.Reset();
-        if (timer.GetTicks() < 1000 / FRAMES_PER_SECOND)
-        {
-            SDL_Delay((1000 / FRAMES_PER_SECOND) - timer.GetTicks());
-        }
+        particle_timer.Reset();
+        basilisk = g->LoadTextureAlphaPink("res\\sprite\\basilisk.png");
+        dust = g->LoadTextureAlphaPink("res\\sprite\\dust.png");
+        SDL_Color bgcolor;
+        bgcolor.a = 255;
+        bgcolor.r = 0;
+        bgcolor.g = 127;
+        bgcolor.b = 0;
+        g->SetBgColor(bgcolor);
+    }
+
+    virtual void Draw()
+    {
+        EngineParticles::Update(particle_timer.GetTicks());
+
+        g->ClrScr();
+        EngineParticles::Draw(g);
+        g->DrawTexture(p_x, p_y, basilisk, NULL, face_right ? -angle : angle, face_right ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
+        g->Flip();
+    }
+
+    virtual GameScreen* Process()
+    {
         SDL_PumpEvents();
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
+
+            if (InputHandler::IsPressed(SDL_SCANCODE_W))
+            {
+                if (p_y - SPEED >= 0)
+                {
+                    p_y -= SPEED;
+                }
+            }
+            if (InputHandler::IsPressed(SDL_SCANCODE_S))
+            {
+                if (p_y + 54 + SPEED <= SCREEN_H)
+                {
+                    p_y += SPEED;
+                }
+            }
+            if (InputHandler::IsPressed(SDL_SCANCODE_A))
+            {
+                if (p_x - SPEED >= 0)
+                {
+                    p_x -= SPEED;
+                }
+            }
+            if (InputHandler::IsPressed(SDL_SCANCODE_D))
+            {
+                if (p_x + 54 + SPEED <= SCREEN_W)
+                {
+                    p_x += SPEED;
+                }
+            }
+
             switch (event.type)
             {
             case SDL_QUIT:
@@ -135,32 +173,40 @@ int main(int argc, char** argv)
                     quit = true;
                     break;
                 case SDLK_w:
-                    angle = 45;
-                    if (p_y - SPEED >= 0)
+                    if (InputHandler::IsPressed(SDL_SCANCODE_D) || InputHandler::IsPressed(SDL_SCANCODE_A))
                     {
-                        p_y -= SPEED;
+                        angle = 45;
+                    }
+                    else
+                    {
+                        angle = 90;
                     }
                     break;
                 case SDLK_s:
-                    angle = -45;
-                    if (p_y + 54 + SPEED <= SCREEN_H)
+                    if (InputHandler::IsPressed(SDL_SCANCODE_D) || InputHandler::IsPressed(SDL_SCANCODE_A))
                     {
-                        p_y += SPEED;
+                        angle = -45;
+                    }
+                    else
+                    {
+                        angle = -90;
                     }
                     break;
                 case SDLK_d:
-                    face_right = true;
-                    if (p_x + 54 + SPEED <= SCREEN_W)
+                    if (InputHandler::IsPressed(SDL_SCANCODE_W) == false && 
+                        InputHandler::IsPressed(SDL_SCANCODE_S) == false)
                     {
-                        p_x += SPEED;
+                        angle = 0;
                     }
+                    face_right = true;
                     break;
                 case SDLK_a:
-                    face_right = false;
-                    if (p_x - SPEED >= 0)
+                    if (InputHandler::IsPressed(SDL_SCANCODE_W) == false &&
+                        InputHandler::IsPressed(SDL_SCANCODE_S) == false)
                     {
-                        p_x -= SPEED;
+                        angle = 0;
                     }
+                    face_right = false;
                     break;
                 case SDLK_q:
                     EngineParticles::Add(new DustParticle(dust, 100, 100, 1, particle_timer.GetTicks()));
@@ -168,15 +214,48 @@ int main(int argc, char** argv)
                 break;
             }
         }
-
-        EngineParticles::Update(particle_timer.GetTicks());
-
-        g.ClrScr();
-        EngineParticles::Draw(&g);
-        g.DrawTexture(p_x, p_y, basilisk, NULL, face_right ? -angle : angle, face_right ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
-        g.Flip();
+        if (quit)
+        {
+            return nullptr;
+        }
+        else
+        {
+            return this;
+        }
     }
-    SDL_DestroyTexture(basilisk);
-    SDL_DestroyTexture(dust);
+
+    virtual MainScreen::~MainScreen()
+    {
+        SDL_DestroyTexture(basilisk);
+        SDL_DestroyTexture(dust);
+    }
+};
+
+int main(int argc, char** argv)
+{
+    SDL_SetAssertionHandler(EngineRoutines::handler, NULL);
+    Graph g(SCREEN_W, SCREEN_H, "", "test");
+    Timer timer;
+    timer.Reset();
+
+    GameScreen* current_screen = new MainScreen(&g);
+    GameScreen* prev_screen = current_screen;
+    
+
+    while (prev_screen == current_screen)
+    {
+        timer.Reset();
+        if (timer.GetTicks() < 1000 / FRAMES_PER_SECOND)
+        {
+            SDL_Delay((1000 / FRAMES_PER_SECOND) - timer.GetTicks());
+        }
+
+        prev_screen = current_screen;
+        current_screen->Draw();
+        current_screen = current_screen->Process();
+    }
+
+    delete current_screen;
+
     return 0;
 }

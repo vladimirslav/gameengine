@@ -219,6 +219,12 @@
     <ClInclude Include="..\..\engine\base\particles.h">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\engine\base\input.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\engine\base\gamescreen.h">
+      <Filter>Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\engine\base\routines.cpp">
@@ -231,6 +237,12 @@
       <Filter>Base</Filter>
     </ClCompile>
     <ClCompile Include="..\..\engine\base\particles.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\engine\base\input.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\engine\base\gamescreen.cpp">
       <Filter>Base</Filter>
     </ClCompile>
   </ItemGroup>

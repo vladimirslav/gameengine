@@ -1,14 +1,14 @@
+#ifndef __GRAPH_H__
+#define __GRAPH_H__
+
+#include "routines.h"
+
 #include "..\SDL2\include\SDL.h"
 #include "..\SDL2\include\SDL_ttf.h"
 #include "..\SDL2\include\SDL_image.h"
 #include "..\SDL2\include\SDL_mixer.h"
 
-#include "routines.h"
-
 #include <string>
-
-#ifndef __Graph_H__
-#define __Graph_H__
 
 extern const int NORMAL_FONT_SIZE;
 
