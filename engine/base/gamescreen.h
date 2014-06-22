@@ -2,13 +2,16 @@
 #define __GAMESCREEN_H__
 
 #include "graph.h"
+#include "Timer.h"
 
 class GameScreen
 {
 protected:
     Graph* g;
+    Timer particle_timer;
+    
 public:
-    GameScreen(Graph* g);
+    GameScreen(Graph& g);
     virtual GameScreen* Process();
     virtual void Draw();
 };

@@ -30,7 +30,7 @@ private:
     SDL_Rect frame_r;
 public:
 
-    DustParticle(SDL_Texture* _texture, int _x, int _y, int _life, int _time)
+    DustParticle(sprite_id _texture, int _x, int _y, int _life, int _time, Graph* g)
         : Particle(_texture, _x, _y, _life, _time)
         , frame(0)
         , frame_time(100)
@@ -40,8 +40,8 @@ public:
     {
         int w = 0;
         int h = 0;
-
-        SDL_assert_release(SDL_QueryTexture(texture, NULL, NULL, &w, &h) == 0);
+        
+        SDL_assert_release(SDL_QueryTexture(g->GetTexture(_texture), NULL, NULL, &w, &h) == 0);
 
         frame_w = w / frames_horizontal;
         frame_h = h / frames_vertical;
@@ -97,22 +97,22 @@ private:
     double face_right = false;
     double angle = 45;
     Timer particle_timer;
-    SDL_Texture* basilisk = nullptr;
-    SDL_Texture* dust = nullptr;
+    sprite_id basilisk;
+    sprite_id dust;
 
 public:
 
-    MainScreen(Graph* g) : GameScreen(g) 
+    MainScreen(Graph& g) : GameScreen(g) 
     {
         particle_timer.Reset();
-        basilisk = g->LoadTextureAlphaPink("res\\sprite\\basilisk.png");
-        dust = g->LoadTextureAlphaPink("res\\sprite\\dust.png");
+        basilisk = g.LoadTextureAlphaPink("res\\sprite\\basilisk.png");
+        dust = g.LoadTextureAlphaPink("res\\sprite\\dust.png");
         SDL_Color bgcolor;
         bgcolor.a = 255;
         bgcolor.r = 0;
         bgcolor.g = 127;
         bgcolor.b = 0;
-        g->SetBgColor(bgcolor);
+        g.SetBgColor(bgcolor);
     }
 
     virtual void Draw()
@@ -121,7 +121,7 @@ public:
 
         g->ClrScr();
         EngineParticles::Draw(g);
-        g->DrawTexture(p_x, p_y, basilisk, NULL, face_right ? -angle : angle, face_right ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
+        g->DrawTexture(p_x, p_y, g->GetTexture(basilisk), NULL, face_right ? -angle : angle, face_right ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
         g->Flip();
     }
 
@@ -209,7 +209,7 @@ public:
                     face_right = false;
                     break;
                 case SDLK_q:
-                    EngineParticles::Add(new DustParticle(dust, 100, 100, 1, particle_timer.GetTicks()));
+                    EngineParticles::Add(new DustParticle(dust, 100, 100, 1, particle_timer.GetTicks(), g));
                 }
                 break;
             }
@@ -226,8 +226,7 @@ public:
 
     virtual MainScreen::~MainScreen()
     {
-        SDL_DestroyTexture(basilisk);
-        SDL_DestroyTexture(dust);
+        g->FreeTextures();
     }
 };
 
@@ -238,7 +237,7 @@ int main(int argc, char** argv)
     Timer timer;
     timer.Reset();
 
-    GameScreen* current_screen = new MainScreen(&g);
+    GameScreen* current_screen = new MainScreen(g);
     GameScreen* prev_screen = current_screen;
     
 

@@ -6,12 +6,12 @@
 class Timer
 {
 private:
-    int last_ticks;
-    int pause_ticks;
+    size_t last_ticks;
+    size_t pause_ticks;
     bool paused;
 public:
     Timer();
-    int GetTicks();
+    size_t GetTicks();
     void Reset();
     void Pause();
     void Unpause();

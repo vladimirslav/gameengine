@@ -20,7 +20,7 @@ void Particle::Update(int new_time)
     }
 }
 
-Particle::Particle(SDL_Texture* _texture, int _x, int _y, int _life, int _time)
+Particle::Particle(sprite_id _texture, int _x, int _y, int _life, int _time)
     : x(_x), y(_y), lives(_life), time(_time), texture(_texture)
 {
     dead = false;
@@ -50,12 +50,12 @@ SDL_Rect* Particle::GetFrame()
     return NULL;
 }
 
-SDL_Texture* Particle::GetTexture()
+sprite_id Particle::GetTexture()
 {
     return texture;
 }
 
-MovingParticle::MovingParticle(SDL_Texture* _texture, int _x, int _y, int _life, int _dx, int _dy, int _time)
+MovingParticle::MovingParticle(sprite_id _texture, int _x, int _y, int _life, int _dx, int _dy, int _time)
     : Particle(_texture, _x, _y, _life, _time), dx(_dx), dy(_dy)
 {
 }
@@ -85,7 +85,7 @@ void EngineParticles::Draw(Graph* gui)
     std::list<Particle*>::iterator it= particles.begin();
     while (it != particles.end())
     {
-        gui->DrawTexture((*it)->GetX(), (*it)->GetY(), (*it)->GetTexture(), (*it)->GetFrame(), 0, SDL_FLIP_NONE);
+        gui->DrawTexture((*it)->GetX(), (*it)->GetY(), gui->GetTexture((*it)->GetTexture()), (*it)->GetFrame(), 0, SDL_FLIP_NONE);
         if ((*it)->IsDead())
         {
             delete(*it);

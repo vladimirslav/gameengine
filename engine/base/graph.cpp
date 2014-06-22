@@ -1,4 +1,5 @@
 #include "graph.h"
+#include <vector>
 
 const SDL_Color F_WHITE = { 255, 255, 255, 255 };
 const SDL_Color F_RED = { 255, 0, 0, 0 };
@@ -7,6 +8,7 @@ const SDL_Color F_BLACK = { 0, 0, 0, 0 };
 const SDL_Color SELF_WHITE = {255,255,255};
 
 const int NORMAL_FONT_SIZE = 32;
+
 /*
  * Initialize the window, where all stuff will be drawn
  * @param _w is window width
@@ -23,7 +25,6 @@ Graph::Graph(int _w, int _h, const std::string fontFile, const std::string capti
     , renderer(NULL)
     , fontLoaded(false)
 {
-
     SDL_SetAssertionHandler(EngineRoutines::handler, NULL);
 
     SDL_assert_release(SDL_Init(SDL_INIT_EVERYTHING) == 0);
@@ -49,8 +50,13 @@ Graph::Graph(int _w, int _h, const std::string fontFile, const std::string capti
 
 Graph::~Graph()
 {
-    TTF_CloseFont(headFont);
-    TTF_CloseFont(normalFont);
+    if (fontLoaded)
+    {
+        TTF_CloseFont(headFont);
+        TTF_CloseFont(normalFont);
+    }
+    
+    FreeTextures();
     TTF_Quit();
 
     SDL_DestroyRenderer(renderer);
@@ -186,23 +192,66 @@ void Graph::FillRect(int x1, int y1, int x2, int y2, SDL_Color color)
     SDL_assert_release(SDL_RenderDrawRect(renderer, &rect) == 0);
 }
 
-
-SDL_Texture* Graph::LoadTexture(std::string filename)
+SDL_Texture* Graph::GetTexture(sprite_id id)
 {
+    if (sprites.size() > id)
+    {
+        return sprites[id];
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+void Graph::GetTextureSize(sprite_id id, size_t* w, size_t* h)
+{
+    SDL_Texture* target = GetTexture(id);
+    SDL_assert_release(target);
+
+    SDL_Rect result;
+    SDL_assert_release(SDL_QueryTexture(target, NULL, NULL, &result.w, &result.h) == 0);
+
+    if (w != NULL)
+    {
+        *w = result.w;
+    }
+
+    if (h != NULL)
+    {
+        *h = result.h;
+    }
+}
+
+sprite_id Graph::LoadTexture(std::string filename)
+{
+
+    if (preloadedSprites.count(filename) != 0)
+    {
+        return preloadedSprites.at(filename);
+    }
+
     SDL_Texture* result = IMG_LoadTexture(renderer, filename.c_str());
     SDL_assert_release(result != NULL);
-    return result;
+    sprites.push_back(result);
+    return sprites.size() - 1;
 }
 
 
-SDL_Texture* Graph::LoadTextureAlphaPink(std::string filename)
+sprite_id Graph::LoadTextureAlphaPink(std::string filename)
 {
+
+    if (preloadedSprites.count(filename) != 0)
+    {
+        return preloadedSprites.at(filename);
+    }
+
     SDL_Surface* loaded_image = NULL;
     SDL_Surface* optimized_image = NULL;
     loaded_image = IMG_Load(filename.c_str());
-    if( loaded_image != NULL ) {
+    if (loaded_image != NULL) {
         optimized_image = SDL_ConvertSurface(loaded_image, loaded_image->format, 0);
-        SDL_FreeSurface(loaded_image); 
+        SDL_FreeSurface(loaded_image);
 
         SDL_assert_release(optimized_image != NULL);
 
@@ -214,5 +263,16 @@ SDL_Texture* Graph::LoadTextureAlphaPink(std::string filename)
     SDL_Texture* prepared_texture = SDL_CreateTextureFromSurface(renderer, optimized_image);
 
     SDL_assert_release(prepared_texture != NULL);
-    return prepared_texture;
+    sprites.push_back(prepared_texture);
+    return sprites.size() - 1;
+}
+
+void Graph::FreeTextures()
+{
+    for (auto texture : sprites)
+    {
+        SDL_DestroyTexture(texture);
+    }
+    sprites.clear();
+    preloadedSprites.clear();
 }

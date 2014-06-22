@@ -6,7 +6,7 @@ Timer::Timer()
     paused = false;
 }
 
-int Timer::GetTicks()
+size_t Timer::GetTicks()
 {
     if (paused)
     {

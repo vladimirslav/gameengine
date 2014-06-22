@@ -9,6 +9,11 @@
 #include "..\SDL2\include\SDL_mixer.h"
 
 #include <string>
+#include <vector>
+#include <unordered_map>
+
+typedef unsigned int sprite_id;
+typedef std::unordered_map<std::string, sprite_id> TextureIdMap;
 
 extern const int NORMAL_FONT_SIZE;
 
@@ -28,14 +33,14 @@ private:
     SDL_Renderer* renderer;
 
     bool fontLoaded;
+    std::vector<SDL_Texture*> sprites;
+    TextureIdMap preloadedSprites;
 
 public:
     Graph(int w, int h, const std::string fontFile, const std::string caption);
     ~Graph();
     const int &GetWidth() const;
     const int &GetHeight() const;
-    SDL_Texture* LoadTexture(std::string filename);
-    SDL_Texture* LoadTextureAlphaPink(std::string filename);
     void SetBgColor(SDL_Color color);
     void Flip();
     void FillScreen(SDL_Color color);
@@ -48,6 +53,15 @@ public:
 
     void DrawTexture(int x, int y, SDL_Texture* texture);
     void DrawTexture(int x, int y, SDL_Texture* texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip);
+
+    sprite_id LoadSprite(std::string name);
+    sprite_id LoadTexture(std::string filename);
+    sprite_id LoadTextureAlphaPink(std::string filename);
+
+    SDL_Texture* GetTexture(sprite_id id);
+    void GetTextureSize(sprite_id id, size_t* w, size_t* h);
+    void FreeTextures();
+
 private:
     void WriteText(TTF_Font* f, std::string, int x, int y, SDL_Color color);
 
