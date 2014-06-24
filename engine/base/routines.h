@@ -9,5 +9,7 @@ namespace EngineRoutines
     SDL_assert_state handler(const SDL_assert_data* data,
                              void*                  userdata);
 
+    void InitRand();
+    int GetRand(int min, int max);
 }
 #endif

@@ -7,8 +7,6 @@ const SDL_Color F_BLACK = { 0, 0, 0, 0 };
 
 const SDL_Color SELF_WHITE = {255,255,255};
 
-const int NORMAL_FONT_SIZE = 32;
-
 /*
  * Initialize the window, where all stuff will be drawn
  * @param _w is window width
@@ -16,14 +14,11 @@ const int NORMAL_FONT_SIZE = 32;
  * @param fontFile - file with TTF font to be used
  * @param caption - window caption
 */
-Graph::Graph(int _w, int _h, const std::string fontFile, const std::string caption)
+Graph::Graph(int _w, int _h, const std::string caption)
     : screen(NULL)
-    , headFont(NULL)
-    , normalFont(NULL)
     , w(_w)
     , h(_h)
     , renderer(NULL)
-    , fontLoaded(false)
 {
     SDL_SetAssertionHandler(EngineRoutines::handler, NULL);
 
@@ -37,32 +32,36 @@ Graph::Graph(int _w, int _h, const std::string fontFile, const std::string capti
     
     renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_assert_release(renderer != NULL);
-
-    if (fontFile.length() > 0)
-    {
-        headFont = TTF_OpenFont(fontFile.c_str(), 64);
-        SDL_assert_release(headFont != NULL);
-        normalFont = TTF_OpenFont(fontFile.c_str(), NORMAL_FONT_SIZE);
-        SDL_assert_release(normalFont != NULL);
-        fontLoaded = true;
-    }
 }
 
 Graph::~Graph()
 {
-    if (fontLoaded)
-    {
-        TTF_CloseFont(headFont);
-        TTF_CloseFont(normalFont);
-    }
     
     FreeTextures();
+    FreeFonts();
     TTF_Quit();
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(screen);
 
     SDL_Quit();
+}
+
+/* Load font, return handler id to it */
+size_t Graph::LoadFont(const std::string& fileName, size_t size)
+{
+    TTF_Font* fnt = TTF_OpenFont(fileName.c_str(), size);
+    SDL_assert_release(fnt != NULL);
+    fonts.push_back(fnt);
+    return fonts.size() - 1;
+}
+
+void Graph::FreeFonts()
+{
+    for (auto font : fonts)
+    {
+        TTF_CloseFont(font);
+    }
 }
 
 /*
@@ -124,9 +123,9 @@ const int &Graph::GetHeight() const
 /*
  * write the text on the screen
  */
-void Graph::WriteText(TTF_Font* f, std::string text, int x, int y, SDL_Color color)
+void Graph::WriteText(TTF_Font* f, const std::string& str, int x, int y, SDL_Color color)
 {
-    SDL_Surface* message = TTF_RenderText_Blended(f, text.c_str(), color);
+    SDL_Surface* message = TTF_RenderText_Blended(f, str.c_str(), color);
     SDL_assert_release(message != NULL);
     SDL_Texture* preparedMsg = SDL_CreateTextureFromSurface(renderer, message);
     SDL_assert_release(preparedMsg != NULL);
@@ -139,19 +138,14 @@ void Graph::WriteText(TTF_Font* f, std::string text, int x, int y, SDL_Color col
     SDL_DestroyTexture(preparedMsg);
 }
 
-void Graph::WriteHeading(std::string text, int x, int y)
+void Graph::WriteNormal(size_t fontHandler, const std::string& str, int x, int y)
 {
-    WriteText(headFont, text, x, y, SELF_WHITE);
+    WriteText(fonts[fontHandler], str, x, y, SELF_WHITE);
 }
 
-void Graph::WriteNormal(std::string text, int x, int y)
+void Graph::WriteNormal(size_t fontHandler, const std::string& str, int x, int y, SDL_Color color)
 {
-    WriteText(normalFont, text, x, y, SELF_WHITE);
-}
-
-void Graph::WriteNormal(std::string text, int x, int y, SDL_Color color)
-{
-    WriteText(normalFont, text, x, y, color);
+    WriteText(fonts[fontHandler], str, x, y, color);
 }
 
 void Graph::DrawTexture(int x, int y, SDL_Texture* texture)
@@ -160,6 +154,21 @@ void Graph::DrawTexture(int x, int y, SDL_Texture* texture)
     dest.x = x;
     dest.y = y;
     SDL_assert_release(SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h) == 0);
+    SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, &dest) == 0);
+}
+
+void Graph::DrawTextureStretched(SDL_Texture* texture)
+{
+    SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, NULL) == 0);
+}
+
+void Graph::DrawTextureStretched(int x, int y, int w, int h, SDL_Texture* texture)
+{
+    SDL_Rect dest;
+    dest.x = x;
+    dest.y = y;
+    dest.w = w;
+    dest.h = h;
     SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, &dest) == 0);
 }
 
@@ -275,4 +284,46 @@ void Graph::FreeTextures()
     }
     sprites.clear();
     preloadedSprites.clear();
+}
+
+void Graph::GrayScaleFilter(int x, int y, size_t w, size_t h)
+{
+    SDL_Rect target{x, y, w, h};
+
+    SDL_BlendMode currentBlend;
+    SDL_GetRenderDrawBlendMode(renderer, &currentBlend);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer, 128, 128, 128, 192);
+    SDL_RenderFillRect(renderer, &target);
+    SDL_SetRenderDrawBlendMode(renderer, currentBlend);
+    //SDL_RenderDrawRect(renderer, &target);
+    /*
+    Uint8 pixels;
+    SDL_RenderReadPixels(renderer, &target, 0, pixels, 0);
+    for (int i = 0; i != w; ++i)
+    {
+        
+        for (int y = 0; y != SDL_GetVideoSurface()->h; ++y)
+        {
+            Uint8 r = 0;
+            Uint8 g = 0;
+            Uint8 b = 0;
+            SDL_GetRGB(pixel, SDL_GetVideoSurface()->format, &r, &g, &b);
+            SDL_RenderDrawPoint(renderer, i, y);
+            r = g = b = ((r + g + b) / 3);
+            putpixel(SDL_GetVideoSurface(), i, y, SDL_MapRGB(SDL_GetVideoSurface()->format, r, g, b));
+        }
+    }
+    */
+}
+
+void Graph::DrawRect(int x, int y, size_t w, size_t h, SDL_Color color)
+{
+    SDL_Rect box{ x, y, w, h };
+    SDL_BlendMode currentBlend;
+    SDL_GetRenderDrawBlendMode(renderer, &currentBlend);
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_RenderFillRect(renderer, &box);
+    SDL_SetRenderDrawBlendMode(renderer, currentBlend);
 }
