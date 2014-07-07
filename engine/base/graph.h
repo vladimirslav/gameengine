@@ -47,13 +47,15 @@ public:
     void WriteNormal(size_t fontHandler, const std::string& str, int x, int y, SDL_Color color);
     void FillRect(int x1, int y1, int x2, int y2, SDL_Color color);
 
+    void DrawTexture(int x, int y, sprite_id texture);
     void DrawTexture(int x, int y, SDL_Texture* texture);
+
+    void DrawTexture(int x, int y, sprite_id texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip);
     void DrawTexture(int x, int y, SDL_Texture* texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip);
 
     void DrawTextureStretched(SDL_Texture* texture); //fullscreen
     void DrawTextureStretched(int x, int y, int w, int h, SDL_Texture* texture); //fixed width
 
-    sprite_id LoadSprite(std::string name);
     sprite_id LoadTexture(std::string filename);
     sprite_id LoadTextureAlphaPink(std::string filename);
 
@@ -66,6 +68,8 @@ public:
 
     void GrayScaleFilter(int x, int y, size_t w, size_t h);
     void DrawRect(int x, int y, size_t w, size_t h, SDL_Color color);
+
+    void SetViewPort(int x, int y, size_t w, size_t h);
 
 private:
     void WriteText(TTF_Font* f, const std::string& str, int x, int y, SDL_Color color);

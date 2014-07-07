@@ -25,6 +25,7 @@
     <ClInclude Include="..\..\engine\base\particles.h" />
     <ClInclude Include="..\..\engine\base\routines.h" />
     <ClInclude Include="..\..\engine\base\Timer.h" />
+    <ClInclude Include="..\..\engine\base\window.h" />
     <ClInclude Include="..\..\engine\SDL2\include\begin_code.h" />
     <ClInclude Include="..\..\engine\SDL2\include\close_code.h" />
     <ClInclude Include="..\..\engine\SDL2\include\SDL.h" />
@@ -99,6 +100,7 @@
     <ClCompile Include="..\..\engine\base\particles.cpp" />
     <ClCompile Include="..\..\engine\base\routines.cpp" />
     <ClCompile Include="..\..\engine\base\Timer.cpp" />
+    <ClCompile Include="..\..\engine\base\window.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{902BD720-692B-47CD-A94C-47E3ADB11D00}</ProjectGuid>

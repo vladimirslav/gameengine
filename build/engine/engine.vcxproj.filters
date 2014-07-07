@@ -225,6 +225,9 @@
     <ClInclude Include="..\..\engine\base\gamescreen.h">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\engine\base\window.h">
+      <Filter>Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\engine\base\routines.cpp">
@@ -243,6 +246,9 @@
       <Filter>Base</Filter>
     </ClCompile>
     <ClCompile Include="..\..\engine\base\gamescreen.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\engine\base\window.cpp">
       <Filter>Base</Filter>
     </ClCompile>
   </ItemGroup>

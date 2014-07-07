@@ -77,6 +77,7 @@ void Graph::SetBgColor(SDL_Color color)
 */
 void Graph::ClrScr()
 {
+    SetViewPort(0, 0, w, h);
     SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
     SDL_RenderClear(renderer);
 }
@@ -157,6 +158,13 @@ void Graph::DrawTexture(int x, int y, SDL_Texture* texture)
     SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, &dest) == 0);
 }
 
+void Graph::DrawTexture(int x, int y, sprite_id texture)
+{
+    SDL_Texture* tex = GetTexture(texture);
+    SDL_assert_release(tex);
+    DrawTexture(x, y, tex);
+}
+
 void Graph::DrawTextureStretched(SDL_Texture* texture)
 {
     SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, NULL) == 0);
@@ -188,6 +196,13 @@ void Graph::DrawTexture(int x, int y, SDL_Texture* texture, const SDL_Rect* texP
     }
     
     SDL_assert_release(SDL_RenderCopyEx(renderer, texture, texPart, &dest, angle, NULL, flip) == 0);
+}
+
+void Graph::DrawTexture(int x, int y, sprite_id texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip)
+{
+    SDL_Texture* tex = GetTexture(texture);
+    SDL_assert_release(tex);
+    DrawTexture(x, y, tex, texPart, angle, flip);
 }
 
 void Graph::FillRect(int x1, int y1, int x2, int y2, SDL_Color color)
@@ -326,4 +341,14 @@ void Graph::DrawRect(int x, int y, size_t w, size_t h, SDL_Color color)
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     SDL_RenderFillRect(renderer, &box);
     SDL_SetRenderDrawBlendMode(renderer, currentBlend);
+}
+
+void Graph::SetViewPort(int x, int y, size_t w, size_t h)
+{
+    SDL_Rect viewPort;
+    viewPort.x = x;
+    viewPort.y = y;
+    viewPort.w = w;
+    viewPort.h = h;
+    SDL_RenderSetViewport(renderer, &viewPort);
 }
