@@ -7,13 +7,22 @@ namespace EngineWindow
 
     static std::vector<GameWindow*> windows;
 
-    GameWindow::GameWindow(int x, int y, size_t w, size_t h, Graph& g, SDL_Color color)
+    GameWindow::GameWindow(int x,
+                           int y,
+                           size_t w,
+                           size_t h,
+                           size_t borderWidth,
+                           Graph& g,
+                           SDL_Color color,
+                           SDL_Color borderColor)
         : x(x)
         , y(y)
         , width(w)
         , height(h)
         , g(&g)
         , color(color)
+        , borderColor(borderColor)
+        , borderWidth(borderWidth)
     {
         windows.push_back(this);
     }
@@ -32,6 +41,16 @@ namespace EngineWindow
     {
         g->SetViewPort(0, 0, g->GetWidth(), g->GetHeight());
         g->DrawRect(x, y, width, height, color);
+        for (size_t i = 0; i < borderWidth; i++)
+        {
+            // horizontal lines
+            g->DrawLine(x, y + i, x + width, y + i, borderColor);
+            g->DrawLine(x, y + height - i, x + width, y + height - i, borderColor);
+
+            // vertical lines
+            g->DrawLine(x + i, y, x + i, y + height, borderColor);
+            g->DrawLine(x + width - i, y, x + width - i, y + height, borderColor);
+        }
     }
 
     void GameWindow::Update(const SDL_Event& event)

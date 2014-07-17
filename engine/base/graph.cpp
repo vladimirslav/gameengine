@@ -93,7 +93,7 @@ void Graph::Flip()
 /* 
  * Fill the screen with the given color
 */
-void Graph::FillScreen(SDL_Color color)
+void Graph::FillScreen(const SDL_Color& color)
 {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     SDL_RenderClear(renderer);
@@ -105,7 +105,7 @@ void Graph::FillScreen(SDL_Color color)
  * @param y is the y coordinate of the pixel
  * @param color is the color in Uint32
 */
-void Graph::PutPixel(int x, int y, SDL_Color color)
+void Graph::PutPixel(int x, int y, const SDL_Color& color)
 {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     SDL_RenderDrawPoint(renderer, x, y);
@@ -124,7 +124,7 @@ const int &Graph::GetHeight() const
 /*
  * write the text on the screen
  */
-void Graph::WriteText(TTF_Font* f, const std::string& str, int x, int y, SDL_Color color)
+void Graph::WriteText(TTF_Font* f, const std::string& str, int x, int y, const SDL_Color& color)
 {
     SDL_Surface* message = TTF_RenderText_Blended(f, str.c_str(), color);
     SDL_assert_release(message != NULL);
@@ -144,7 +144,7 @@ void Graph::WriteNormal(size_t fontHandler, const std::string& str, int x, int y
     WriteText(fonts[fontHandler], str, x, y, SELF_WHITE);
 }
 
-void Graph::WriteNormal(size_t fontHandler, const std::string& str, int x, int y, SDL_Color color)
+void Graph::WriteNormal(size_t fontHandler, const std::string& str, int x, int y, const SDL_Color& color)
 {
     WriteText(fonts[fontHandler], str, x, y, color);
 }
@@ -212,7 +212,7 @@ void Graph::DrawTexture(int x, int y, sprite_id texture, const SDL_Rect* texPart
     DrawTexture(x, y, tex, texPart, angle, flip);
 }
 
-void Graph::FillRect(int x1, int y1, int x2, int y2, SDL_Color color)
+void Graph::FillRect(int x1, int y1, int x2, int y2, const SDL_Color& color)
 {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     SDL_Rect rect;
@@ -339,7 +339,7 @@ void Graph::GrayScaleFilter(int x, int y, size_t w, size_t h)
     */
 }
 
-void Graph::DrawRect(int x, int y, size_t w, size_t h, SDL_Color color)
+void Graph::DrawRect(int x, int y, size_t w, size_t h, const SDL_Color& color)
 {
     SDL_Rect box{ x, y, w, h };
     SDL_BlendMode currentBlend;
@@ -358,4 +358,10 @@ void Graph::SetViewPort(int x, int y, size_t w, size_t h)
     viewPort.w = w;
     viewPort.h = h;
     SDL_RenderSetViewport(renderer, &viewPort);
+}
+
+void Graph::DrawLine(int x1, int y1, int x2, int y2, const SDL_Color& color)
+{
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+    SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 }

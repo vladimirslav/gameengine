@@ -14,9 +14,19 @@ namespace EngineWindow
         size_t height;
         Graph* g;
         SDL_Color color;
+        SDL_Color borderColor;
+
+        size_t borderWidth;
 
     public:
-        GameWindow(int x, int y, size_t w, size_t h, Graph& g, SDL_Color color);
+        GameWindow(int x, 
+                   int y, 
+                   size_t w, 
+                   size_t h, 
+                   size_t borderWidth, 
+                   Graph& g, 
+                   SDL_Color color, 
+                   SDL_Color borderColor);
         ~GameWindow();
 
         virtual void Draw();
