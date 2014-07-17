@@ -15,3 +15,13 @@ void GameScreen::Draw()
 {
 
 }
+
+size_t GameScreen::GetCurrentFont()
+{
+    return 0;
+}
+
+int GameScreen::GetCurrentTime()
+{
+    return particle_timer.GetTicks();
+}

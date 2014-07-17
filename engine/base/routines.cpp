@@ -25,5 +25,5 @@ int EngineRoutines::GetRand(int min, int max)
 
 void EngineRoutines::InitRand()
 {
-    srand(time(NULL));
+    srand(static_cast<int>(time(NULL)));
 }

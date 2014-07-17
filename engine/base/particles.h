@@ -28,7 +28,10 @@ namespace EngineParticles
         virtual sprite_id GetTexture();
         virtual SDL_Rect* GetFrame();
         virtual void Update(int new_time);
+        
         virtual ~Particle();
+
+        virtual void Draw(Graph* g);
     };
 
     class MovingParticle : public Particle
@@ -39,6 +42,19 @@ namespace EngineParticles
     public:
         MovingParticle(sprite_id _texture, int _x, int _y, int _life, int _dx, int _dy, int _time);
         virtual void Update(int new_time);
+        virtual void Draw(Graph* g);
+    };
+
+
+    class MovingTextParticle : public EngineParticles::MovingParticle
+    {
+    protected:
+        size_t fontId;
+        std::string text;
+        SDL_Color color;
+    public:
+        MovingTextParticle(sprite_id _texture, int _x, int _y, int _life, int _dx, int _dy, int _time, size_t fontId, std::string text, SDL_Color color);
+        virtual void Draw(Graph* gui);
     };
 
     void Update(int time);

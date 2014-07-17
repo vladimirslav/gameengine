@@ -198,6 +198,13 @@ void Graph::DrawTexture(int x, int y, SDL_Texture* texture, const SDL_Rect* texP
     SDL_assert_release(SDL_RenderCopyEx(renderer, texture, texPart, &dest, angle, NULL, flip) == 0);
 }
 
+void Graph::DrawTexture(const SDL_Rect* destRect, sprite_id texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip)
+{
+    SDL_Texture* tex = GetTexture(texture);
+    SDL_assert_release(tex);
+    SDL_assert_release(SDL_RenderCopyEx(renderer, tex, texPart, destRect, angle, NULL, flip) == 0);
+}
+
 void Graph::DrawTexture(int x, int y, sprite_id texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip)
 {
     SDL_Texture* tex = GetTexture(texture);

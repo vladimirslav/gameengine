@@ -52,6 +52,7 @@ public:
 
     void DrawTexture(int x, int y, sprite_id texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip);
     void DrawTexture(int x, int y, SDL_Texture* texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip);
+    void DrawTexture(const SDL_Rect* destRect, sprite_id texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip);
 
     void DrawTextureStretched(SDL_Texture* texture); //fullscreen
     void DrawTextureStretched(int x, int y, int w, int h, SDL_Texture* texture); //fixed width
