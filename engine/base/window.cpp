@@ -70,6 +70,71 @@ namespace EngineWindow
         }
     }
 
+    NotificationWindow::NotificationWindow(int x,
+                                           int y,
+                                           size_t w,
+                                           size_t h,
+                                           size_t borderWidth,
+                                           Graph& g,
+                                           SDL_Color color,
+                                           SDL_Color borderColor,
+                                           std::string message,
+                                           SDL_Color textColor,
+                                           size_t fontId)
+        : GameWindow(x, y, w, h, borderWidth, g, color, borderColor)
+        , message(message)
+        , textColor(textColor)
+        , fontId(fontId)
+        , fontBorder(10)
+    {
+
+    }
+
+    NotificationWindow::NotificationWindow(int x,
+                                           int y,
+                                           size_t borderWidth,
+                                           Graph& g,
+                                           SDL_Color color,
+                                           SDL_Color borderColor,
+                                           size_t fontBorder,
+                                           std::string message,
+                                           SDL_Color textColor,
+                                           size_t fontId)
+        : GameWindow(x, y, 0, 0, borderWidth, g, color, borderColor)
+        , message(message)
+        , textColor(textColor)
+        , fontId(fontId)
+        , fontBorder(fontBorder)
+    {
+        int newW;
+        int newH;
+        g.GetTextSize(fontId, message, &newW, &newH);
+
+        width += fontBorder * 2 + newW;
+        height += fontBorder * 2 + newH;
+    }
+
+    void NotificationWindow::Draw()
+    {
+        GameWindow::Draw();
+        g->WriteNormal(fontId, message, x + fontBorder, y + height / 2);
+    }
+
+    void NotificationWindow::Update(const SDL_Event& event)
+    {
+        switch (event.type)
+        {
+        case SDL_QUIT:
+            delete this;
+            break;
+        case SDL_KEYDOWN:
+            delete this;
+            break;
+        }
+    }
+
+
+
     bool UpdateWindow(const SDL_Event& event)
     {
         if (windows.size() > 0)

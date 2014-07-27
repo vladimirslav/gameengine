@@ -149,6 +149,60 @@ void Graph::WriteNormal(size_t fontHandler, const std::string& str, int x, int y
     WriteText(fonts[fontHandler], str, x, y, color);
 }
 
+void Graph::WriteParagraph(font_id fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color)
+{
+    size_t i = 0;
+    size_t row = 0;
+    while (i < str.size() - 1)
+    {   
+        size_t final_letter = str.size() - 1;
+        size_t right_border = final_letter;
+        size_t left_border = i;
+
+        bool wrote = false;
+        do
+        {
+            int w = 0;
+            int h = 0;
+            GetTextSize(fontHandler, std::string(str.begin() + i, str.begin() + final_letter + 1), &w, &h);
+            if (w <= maxW)
+            {
+                if (final_letter == str.size() - 1 || (maxW - w) <= static_cast<int>(allowedBarrier))
+                {
+                    WriteNormal(fontHandler, std::string(str.begin() + i, str.begin() + final_letter + 1), x, y + row * h);
+                    wrote = true;
+                }
+                else
+                {
+                    left_border = final_letter;
+                }
+            }
+            else
+            {
+                right_border = final_letter;
+            }
+
+            if (wrote == false)
+            {
+                final_letter = (left_border + right_border) / 2;
+                if (final_letter >= str.size())
+                {
+                    final_letter = str.size() - 1;
+                }
+            }
+        }
+        while (wrote == false);
+
+        i = final_letter + 1;
+        row++;
+    }
+}
+
+void Graph::GetTextSize(font_id fontHandler, const std::string& str, int* w, int* h)
+{
+    SDL_assert_release(TTF_SizeText(fonts[fontHandler], str.c_str(), w, h) == 0);
+}
+
 void Graph::DrawTexture(int x, int y, SDL_Texture* texture)
 {
     SDL_Rect dest;

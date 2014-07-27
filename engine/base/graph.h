@@ -13,6 +13,8 @@
 #include <unordered_map>
 
 typedef unsigned int sprite_id;
+typedef size_t font_id;
+
 typedef std::unordered_map<std::string, sprite_id> TextureIdMap;
 typedef std::vector<TTF_Font*> FontList;
 
@@ -43,8 +45,12 @@ public:
     void FillScreen(const SDL_Color& color);
     void ClrScr();
     void PutPixel(int x, int y, const SDL_Color& color);
-    void WriteNormal(size_t fontHandler, const std::string& str, int x, int y);
-    void WriteNormal(size_t fontHandler, const std::string& str, int x, int y, const SDL_Color& color);
+
+    void GetTextSize(font_id fontHandler, const std::string& str, int* w, int* h);
+    void WriteNormal(font_id fontHandler, const std::string& str, int x, int y);
+    void WriteNormal(font_id fontHandler, const std::string& str, int x, int y, const SDL_Color& color);
+    void WriteParagraph(font_id fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color);
+
     void FillRect(int x1, int y1, int x2, int y2, const SDL_Color& color);
 
     void DrawTexture(int x, int y, sprite_id texture);
@@ -64,7 +70,7 @@ public:
     void GetTextureSize(sprite_id id, size_t* w, size_t* h);
     void FreeTextures();
 
-    size_t LoadFont(const std::string& fileName, size_t size);
+    font_id LoadFont(const std::string& fileName, size_t size);
     void FreeFonts();
 
     void GrayScaleFilter(int x, int y, size_t w, size_t h);

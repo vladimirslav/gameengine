@@ -60,7 +60,7 @@ namespace EngineParticles
     void Update(int time);
     void Add(Particle* p);
     void Draw(Graph* gui);
-
+    void Clear();
 }
 
 #endif

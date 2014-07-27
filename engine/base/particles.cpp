@@ -120,3 +120,13 @@ void EngineParticles::Draw(Graph* gui)
         }
     }
 }
+
+void EngineParticles::Clear()
+{
+    for (auto it : particles)
+    {
+        delete it;
+    }
+
+    particles.clear();
+}
