@@ -66,14 +66,16 @@ public:
     sprite_id LoadTexture(std::string filename);
     sprite_id LoadTextureAlphaPink(std::string filename);
 
-    SDL_Texture* GetTexture(sprite_id id);
-    void GetTextureSize(sprite_id id, size_t* w, size_t* h);
+    SDL_Texture* GetTexture(sprite_id id) const;
+    void GetTextureSize(sprite_id id, size_t* w, size_t* h) const;
     void FreeTextures();
 
     font_id LoadFont(const std::string& fileName, size_t size);
     void FreeFonts();
 
     void GrayScaleFilter(int x, int y, size_t w, size_t h);
+    void ApplyFilter(int x, int y, size_t w, size_t h, SDL_Color& color);
+
     void DrawRect(int x, int y, size_t w, size_t h, const SDL_Color& color);
 
     void DrawLine(int x1, int y1, int x2, int y2, const SDL_Color& color);

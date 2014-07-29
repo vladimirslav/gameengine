@@ -277,7 +277,7 @@ void Graph::FillRect(int x1, int y1, int x2, int y2, const SDL_Color& color)
     SDL_assert_release(SDL_RenderDrawRect(renderer, &rect) == 0);
 }
 
-SDL_Texture* Graph::GetTexture(sprite_id id)
+SDL_Texture* Graph::GetTexture(sprite_id id) const
 {
     if (sprites.size() > id)
     {
@@ -289,7 +289,7 @@ SDL_Texture* Graph::GetTexture(sprite_id id)
     }
 }
 
-void Graph::GetTextureSize(sprite_id id, size_t* w, size_t* h)
+void Graph::GetTextureSize(sprite_id id, size_t* w, size_t* h) const
 {
     SDL_Texture* target = GetTexture(id);
     SDL_assert_release(target);
@@ -362,16 +362,22 @@ void Graph::FreeTextures()
     preloadedSprites.clear();
 }
 
-void Graph::GrayScaleFilter(int x, int y, size_t w, size_t h)
+void Graph::ApplyFilter(int x, int y, size_t w, size_t h, SDL_Color& color)
 {
-    SDL_Rect target{x, y, w, h};
+    SDL_Rect target{ x, y, w, h };
 
     SDL_BlendMode currentBlend;
     SDL_GetRenderDrawBlendMode(renderer, &currentBlend);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(renderer, 128, 128, 128, 192);
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     SDL_RenderFillRect(renderer, &target);
     SDL_SetRenderDrawBlendMode(renderer, currentBlend);
+}
+
+void Graph::GrayScaleFilter(int x, int y, size_t w, size_t h)
+{
+    SDL_Color c{ 128, 128, 128, 192 };
+    ApplyFilter(x, y, w, h, c);
     //SDL_RenderDrawRect(renderer, &target);
     /*
     Uint8 pixels;
