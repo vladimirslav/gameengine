@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <stack>
 
 typedef unsigned int sprite_id;
 typedef size_t font_id;
@@ -34,6 +35,8 @@ private:
     std::vector<SDL_Texture*> sprites;
     TextureIdMap preloadedSprites;
     FontList fonts;
+
+    std::stack<Uint8> alphaValues;
 
 public:
     Graph(int w, int h, const std::string caption);
@@ -81,6 +84,9 @@ public:
     void DrawLine(int x1, int y1, int x2, int y2, const SDL_Color& color);
 
     void SetViewPort(int x, int y, size_t w, size_t h);
+
+    void PushAlpha(Uint8 new_alpha);
+    void PopAlpha();
 
 private:
     void WriteText(TTF_Font* f, const std::string& str, int x, int y, const SDL_Color& color);

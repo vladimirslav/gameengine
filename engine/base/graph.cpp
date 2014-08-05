@@ -32,6 +32,8 @@ Graph::Graph(int _w, int _h, const std::string caption)
     
     renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_assert_release(renderer != NULL);
+
+    alphaValues.push(255);
 }
 
 Graph::~Graph()
@@ -209,6 +211,7 @@ void Graph::DrawTexture(int x, int y, SDL_Texture* texture)
     dest.x = x;
     dest.y = y;
     SDL_assert_release(SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h) == 0);
+    SDL_assert_release(SDL_SetTextureAlphaMod(texture, alphaValues.top()) == 0);
     SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, &dest) == 0);
 }
 
@@ -231,6 +234,7 @@ void Graph::DrawTextureStretched(int x, int y, int w, int h, SDL_Texture* textur
     dest.y = y;
     dest.w = w;
     dest.h = h;
+    SDL_assert_release(SDL_SetTextureAlphaMod(texture, alphaValues.top()) == 0);
     SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, &dest) == 0);
 }
 
@@ -248,7 +252,8 @@ void Graph::DrawTexture(int x, int y, SDL_Texture* texture, const SDL_Rect* texP
     {
         SDL_assert_release(SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h) == 0);
     }
-    
+
+    SDL_assert_release(SDL_SetTextureAlphaMod(texture, alphaValues.top()) == 0);
     SDL_assert_release(SDL_RenderCopyEx(renderer, texture, texPart, &dest, angle, NULL, flip) == 0);
 }
 
@@ -256,6 +261,7 @@ void Graph::DrawTexture(const SDL_Rect* destRect, sprite_id texture, const SDL_R
 {
     SDL_Texture* tex = GetTexture(texture);
     SDL_assert_release(tex);
+    SDL_assert_release(SDL_SetTextureAlphaMod(tex, alphaValues.top()) == 0);
     SDL_assert_release(SDL_RenderCopyEx(renderer, tex, texPart, destRect, angle, NULL, flip) == 0);
 }
 
@@ -424,4 +430,14 @@ void Graph::DrawLine(int x1, int y1, int x2, int y2, const SDL_Color& color)
 {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+}
+
+void Graph::PushAlpha(Uint8 new_alpha)
+{
+    alphaValues.push(new_alpha);
+}
+
+void Graph::PopAlpha()
+{
+    alphaValues.pop();
 }
