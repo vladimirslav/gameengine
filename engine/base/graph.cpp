@@ -64,6 +64,8 @@ void Graph::FreeFonts()
     {
         TTF_CloseFont(font);
     }
+
+    fonts.clear();
 }
 
 /*
@@ -155,48 +157,50 @@ void Graph::WriteParagraph(font_id fontHandler, const std::string& str, int x, i
 {
     size_t i = 0;
     size_t row = 0;
-    while (i < str.size() - 1)
-    {   
-        size_t final_letter = str.size() - 1;
-        size_t right_border = final_letter;
-        size_t left_border = i;
-
-        bool wrote = false;
-        do
+    if (str.size() > 0)
+    {
+        while (i < str.size() - 1)
         {
-            int w = 0;
-            int h = 0;
-            GetTextSize(fontHandler, std::string(str.begin() + i, str.begin() + final_letter + 1), &w, &h);
-            if (w <= maxW)
+            size_t final_letter = str.size() - 1;
+            size_t right_border = final_letter;
+            size_t left_border = i;
+
+            bool wrote = false;
+            do
             {
-                if (final_letter == str.size() - 1 || (maxW - w) <= static_cast<int>(allowedBarrier))
+                int w = 0;
+                int h = 0;
+                GetTextSize(fontHandler, std::string(str.begin() + i, str.begin() + final_letter + 1), &w, &h);
+                if (w <= maxW)
                 {
-                    WriteNormal(fontHandler, std::string(str.begin() + i, str.begin() + final_letter + 1), x, y + row * h);
-                    wrote = true;
+                    if (final_letter == str.size() - 1 || (maxW - w) <= static_cast<int>(allowedBarrier))
+                    {
+                        WriteNormal(fontHandler, std::string(str.begin() + i, str.begin() + final_letter + 1), x, y + row * h, color);
+                        wrote = true;
+                    }
+                    else
+                    {
+                        left_border = final_letter;
+                    }
                 }
                 else
                 {
-                    left_border = final_letter;
+                    right_border = final_letter;
                 }
-            }
-            else
-            {
-                right_border = final_letter;
-            }
 
-            if (wrote == false)
-            {
-                final_letter = (left_border + right_border) / 2;
-                if (final_letter >= str.size())
+                if (wrote == false)
                 {
-                    final_letter = str.size() - 1;
+                    final_letter = (left_border + right_border) / 2;
+                    if (final_letter >= str.size())
+                    {
+                        final_letter = str.size() - 1;
+                    }
                 }
-            }
-        }
-        while (wrote == false);
+            } while (wrote == false);
 
-        i = final_letter + 1;
-        row++;
+            i = final_letter + 1;
+            row++;
+        }
     }
 }
 

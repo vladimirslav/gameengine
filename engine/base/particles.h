@@ -45,6 +45,40 @@ namespace EngineParticles
         virtual void Draw(Graph* g);
     };
 
+    class AnimatedParticle : public MovingParticle
+    {
+    protected:
+        size_t frameW;
+        size_t frameH;
+
+        size_t drawnW;
+        size_t drawnH;
+
+        size_t frameTime;
+        size_t prevFrameSwitch;
+
+        size_t currentFrame;
+        size_t frameAmount;
+        
+    public:
+        AnimatedParticle(sprite_id _texture,
+                         int _x,
+                         int _y,
+                         int _life,
+                         int _dx,
+                         int _dy,
+                         int _time,
+                         size_t frame_w,
+                         size_t frame_h,
+                         size_t drawn_w,
+                         size_t drawn_h,
+                         size_t frame_time,
+                         size_t frame_amount);
+
+        virtual void Update(int new_time);
+        virtual void Draw(Graph* g);
+    };
+
 
     class MovingTextParticle : public EngineParticles::MovingParticle
     {

@@ -16,6 +16,7 @@ public:
     virtual void Draw();
     virtual size_t GetCurrentFont();
     virtual int GetCurrentTime();
+    virtual ~GameScreen() {};
 };
 
 #endif

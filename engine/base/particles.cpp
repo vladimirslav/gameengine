@@ -90,6 +90,52 @@ void MovingTextParticle::Draw(Graph* gui)
     gui->WriteNormal(fontId, text, x, y, color);
 }
 
+AnimatedParticle::AnimatedParticle(sprite_id _texture,
+                                   int _x,
+                                   int _y,
+                                   int _life,
+                                   int _dx,
+                                   int _dy,
+                                   int _time,
+                                   size_t frame_w,
+                                   size_t frame_h,
+                                   size_t drawn_w,
+                                   size_t drawn_h,
+                                   size_t frame_time,
+                                   size_t frame_amount)
+    : MovingParticle(_texture, _x, _y, _life, _dx, _dy, _time)
+    , frameW(frame_w)
+    , frameH(frame_h)
+    , drawnW(drawn_w)
+    , drawnH(drawn_h)
+    , frameTime(frame_time)
+    , prevFrameSwitch(frame_time)
+    , currentFrame(0)
+    , frameAmount(frame_amount)
+{
+}
+
+void AnimatedParticle::Update(int new_time)
+{
+    if (new_time - prevFrameSwitch > frameTime)
+    {
+        prevFrameSwitch = new_time;
+        currentFrame++;
+        if (currentFrame >= frameAmount)
+        {
+            currentFrame = 0;
+        }
+    }
+    MovingParticle::Update(new_time);
+}
+
+void AnimatedParticle::Draw(Graph* g)
+{
+    SDL_Rect frame{GetX(), GetY(), drawnW, drawnH};
+    SDL_Rect framePart{ currentFrame * frameW, 0, frameW, frameH };
+    g->DrawTexture(&frame, texture, &framePart, 0, SDL_FLIP_NONE);
+}
+
 void EngineParticles::Update(int time)
 {
     for (std::list<Particle*>::iterator it=particles.begin(); it!=particles.end(); ++it)
