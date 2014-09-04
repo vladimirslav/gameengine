@@ -117,7 +117,7 @@ namespace EngineWindow
     void NotificationWindow::Draw()
     {
         GameWindow::Draw();
-        g->WriteNormal(fontId, message, x + fontBorder, y + height / 2);
+        g->WriteParagraph(fontId, message, x + fontBorder, y + height / 3, width - fontBorder * 2, fontBorder, textColor);
     }
 
     void NotificationWindow::Update(const SDL_Event& event)
