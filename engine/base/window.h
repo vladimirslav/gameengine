@@ -18,12 +18,16 @@ namespace EngineWindow
 
         size_t borderWidth;
 
+        size_t fontId;
+        int fontHeight;
+
     public:
         GameWindow(int x, 
                    int y, 
                    size_t w, 
                    size_t h, 
-                   size_t borderWidth, 
+                   size_t borderWidth,
+                   size_t fontId,
                    Graph& g, 
                    SDL_Color color, 
                    SDL_Color borderColor);
@@ -38,7 +42,6 @@ namespace EngineWindow
     protected:
         std::string message;
         SDL_Color textColor;
-        size_t fontId;
         int fontBorder;
     public:
 

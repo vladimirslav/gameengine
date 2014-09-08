@@ -12,6 +12,7 @@ namespace EngineWindow
                            size_t w,
                            size_t h,
                            size_t borderWidth,
+                           size_t fontId,
                            Graph& g,
                            SDL_Color color,
                            SDL_Color borderColor)
@@ -23,7 +24,10 @@ namespace EngineWindow
         , color(color)
         , borderColor(borderColor)
         , borderWidth(borderWidth)
+        , fontId(fontId)
     {
+        int tmp = 0;
+        g.GetTextSize(fontId, "Test", &tmp, &fontHeight);
         windows.push_back(this);
     }
 
@@ -81,10 +85,9 @@ namespace EngineWindow
                                            std::string message,
                                            SDL_Color textColor,
                                            size_t fontId)
-        : GameWindow(x, y, w, h, borderWidth, g, color, borderColor)
+        : GameWindow(x, y, w, h, borderWidth, fontId, g, color, borderColor)
         , message(message)
         , textColor(textColor)
-        , fontId(fontId)
         , fontBorder(10)
     {
 
@@ -100,10 +103,9 @@ namespace EngineWindow
                                            std::string message,
                                            SDL_Color textColor,
                                            size_t fontId)
-        : GameWindow(x, y, 0, 0, borderWidth, g, color, borderColor)
+        : GameWindow(x, y, 0, 0, borderWidth, fontId, g, color, borderColor)
         , message(message)
         , textColor(textColor)
-        , fontId(fontId)
         , fontBorder(fontBorder)
     {
         int newW;
