@@ -38,6 +38,8 @@ private:
     std::stack<Uint8> alphaValues;
 
 public:
+    const SDL_Color BLACK = SDL_Color{ 0, 0, 0, 255 };
+
     Graph(int w, int h, const std::string caption);
     ~Graph();
     const int &GetWidth() const;

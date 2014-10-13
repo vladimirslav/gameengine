@@ -5,6 +5,8 @@
 namespace EngineWindow
 {
 
+    static ConfirmationChoice lastChoice = ConfirmationChoice::NONE;
+
     static std::vector<GameWindow*> windows;
 
     GameWindow::GameWindow(int x,
@@ -137,6 +139,137 @@ namespace EngineWindow
 
 
 
+    BGNotificationWindow::BGNotificationWindow(int x,
+        int y,
+        size_t w,
+        size_t h,
+        size_t borderWidth,
+        Graph& g,
+        sprite_id bg,
+        std::string message,
+        SDL_Color textColor,
+        size_t fontId)
+        : GameWindow(x, y, w, h, borderWidth, fontId, g, { 0, 0, 0, 0 }, { 0, 0, 0, 0 })
+        , message(message)
+        , textColor(textColor)
+        , fontBorder(borderWidth)
+        , bg(bg)
+    {
+
+    }
+
+    BGNotificationWindow::BGNotificationWindow(int x,
+        int y,
+        Graph& g,
+        sprite_id bg,
+        size_t fontBorder,
+        std::string message,
+        SDL_Color textColor,
+        size_t fontId)
+        : GameWindow(x, y, 0, 0, 0, fontId, g, { 0, 0, 0, 0 }, { 0, 0, 0, 0 })
+        , message(message)
+        , textColor(textColor)
+        , fontBorder(fontBorder)
+        , bg(bg)
+    {
+        int newW;
+        int newH;
+        g.GetTextSize(fontId, message, &newW, &newH);
+
+        width += fontBorder * 2 + newW;
+        height += fontBorder * 2 + newH;
+    }
+
+    void BGNotificationWindow::Draw()
+    {
+        g->DrawTextureStretched(x, y, width, height, g->GetTexture(bg));
+        g->WriteParagraph(fontId, message, x + fontBorder, y + height / 3, width - fontBorder * 2, fontBorder, textColor);
+    }
+
+    void BGNotificationWindow::Update(const SDL_Event& event)
+    {
+        switch (event.type)
+        {
+        case SDL_QUIT:
+            delete this;
+            break;
+        case SDL_KEYDOWN:
+            delete this;
+            break;
+        }
+    }
+
+    ConfirmationWindow::ConfirmationWindow(int x,
+                                           int y,
+                                           size_t borderWidth,
+                                           Graph& g,
+                                           size_t fontBorder,
+                                           std::string message,
+                                           SDL_Color textColor,
+                                           SDL_Color bgColor,
+                                           SDL_Color borderColor,
+                                           size_t fontId)
+        : GameWindow(x, y, 0, 0, borderWidth ,fontId, g, bgColor, borderColor)
+        , fontColor(textColor)
+        , fontBorder(fontBorder)
+        , message(message)
+    {
+        int newW;
+        int newH;
+        g.GetTextSize(fontId, message, &newW, &newH);
+        int testW;
+        g.GetTextSize(fontId, "OKCancel", &testW, &newH);
+        testW += 40;
+        if (testW > newW)
+        {
+            newW = testW;
+        }
+        width += fontBorder * 2 + newW;
+        height += fontBorder * 2 + newH + 3 * fontHeight;
+        g.GetTextSize(fontId, "Cancel", &newW, &cancelTextW);
+    }
+
+    void ConfirmationWindow::Draw()
+    {
+        GameWindow::Draw();
+        g->WriteParagraph(fontId, message, x + fontBorder, y + height / 3, width - fontBorder * 2, fontBorder, fontColor);
+        g->WriteNormal(fontId, "CANCEL", x + 20, y + height - fontHeight * 2, fontColor);
+        g->WriteNormal(fontId, "OK", x + cancelTextW + 40, y + height - fontHeight * 2, fontColor);
+        
+    }
+
+    void ConfirmationWindow::Update(const SDL_Event& event)
+    {
+        switch (event.type)
+        {
+        case SDL_QUIT:
+            delete this;
+            break;
+        case SDL_KEYDOWN:
+            switch (event.key.keysym.sym)
+            {
+            case SDLK_ESCAPE:
+                OnOK();
+                delete this;
+                break;
+            case SDLK_RETURN:
+                OnCancel();
+                delete this;
+                break;
+            }
+        }
+    }
+
+    void ConfirmationWindow::OnOK()
+    {
+        lastChoice = ConfirmationChoice::YES;
+    }
+
+    void ConfirmationWindow::OnCancel()
+    {
+        lastChoice = ConfirmationChoice::NO;
+    }
+
     bool UpdateWindow(const SDL_Event& event)
     {
         if (windows.size() > 0)
@@ -173,5 +306,15 @@ namespace EngineWindow
     bool HasOpenWindows()
     {
         return windows.size() > 0;
+    }
+
+    void ResetLastChoice()
+    {
+        lastChoice = ConfirmationChoice::NONE;
+    }
+
+    ConfirmationChoice GetLastChoice()
+    {
+        return lastChoice;
     }
 }

@@ -21,6 +21,11 @@ size_t GameScreen::GetCurrentFont()
     return 0;
 }
 
+Graph* GameScreen::GetGraph()
+{
+    return g;
+}
+
 int GameScreen::GetCurrentTime()
 {
     return particle_timer.GetTicks();
