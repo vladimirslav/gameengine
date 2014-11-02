@@ -21,6 +21,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include <stdlib.h>
 #include <time.h>
+#include <fstream>
+#include <sstream>
 
 SDL_assert_state EngineRoutines::handler(const SDL_assert_data* data,
                                          void*                  userdata)
@@ -45,4 +47,92 @@ int EngineRoutines::GetRand(int min, int max)
 void EngineRoutines::InitRand()
 {
     srand(static_cast<int>(time(NULL)));
+}
+
+EngineRoutines::SettingsFile::SettingsFile(const std::string& filename, bool save_on_close)
+    : saveOnClose(save_on_close)
+    , fname(filename)
+{
+
+    std::ifstream f(filename);
+    if (f.good() == false) {
+        // create file
+        // TODO: add extra checks if the path is good
+        f.open(filename, std::ios_base::out);
+    }
+    else
+    {
+        // solution from http://stackoverflow.com/questions/6892754/creating-a-simple-configuration-file-and-parser-in-c
+        std::string line;
+        while (std::getline(f, line))
+        {
+            std::istringstream is_line(line);
+            std::string key;
+            if (std::getline(is_line, key, '='))
+            {
+                std::string value;
+                if (std::getline(is_line, value))
+                    settings[key] = value;
+            }
+        }
+    }
+    f.close();
+
+    /*
+    const char config[] = "url=http://mysite.com\n"
+        "file=main.exe\n"
+        "true=0";
+
+    std::istringstream is_file(config);
+
+    std::string line;
+    while (std::getline(is_file, line))
+    {
+        std::istringstream is_line(line);
+        std::string key;
+        if (std::getline(is_line, key, '='))
+        {
+            std::string value;
+            if (std::getline(is_line, value))
+                store_line(key, value);
+        }
+    }
+    */
+}
+
+std::string EngineRoutines::SettingsFile::GetValue(const std::string& key)
+{
+    if (settings.find(key) != settings.end())
+    {
+        return settings[key];
+    }
+    
+    return "";
+}
+
+void EngineRoutines::SettingsFile::SetValue(const std::string& key, const std::string& value)
+{
+    settings[key] = value;
+}
+
+void EngineRoutines::SettingsFile::Save()
+{
+    std::fstream f;
+    f.open(fname, std::ios_base::out);
+    if (f.good())
+    {
+        for (const auto& setting : settings)
+        {
+            f << setting.first + "=" + setting.second;
+        }
+        f.close();
+    }
+}
+
+EngineRoutines::SettingsFile::~SettingsFile()
+{
+    if (saveOnClose)
+    {
+        Save();
+    }
 }

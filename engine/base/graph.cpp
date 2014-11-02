@@ -381,6 +381,11 @@ sprite_id Graph::LoadTextureAlphaPink(std::string filename)
     return sprites.size() - 1;
 }
 
+void Graph::ToggleFullscreen()
+{
+    SDL_assert_release(SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN_DESKTOP) == 0);
+}
+
 void Graph::FreeTextures()
 {
     for (auto texture : sprites)

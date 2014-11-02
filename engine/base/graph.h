@@ -63,6 +63,9 @@ public:
     ~Graph();
     const int &GetWidth() const;
     const int &GetHeight() const;
+
+    void ToggleFullscreen();
+
     void SetBgColor(SDL_Color color);
     void Flip();
     void FillScreen(const SDL_Color& color);

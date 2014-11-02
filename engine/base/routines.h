@@ -21,6 +21,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #define __COMMIEENGINE_SDL_ROUTINES_H__
 
 #include <SDL.h>
+#include <string>
+#include <unordered_map>
 
 namespace EngineRoutines
 {
@@ -30,5 +32,33 @@ namespace EngineRoutines
 
     void InitRand();
     int GetRand(int min, int max);
+
+    class SettingsFile
+    {
+    private:
+
+        std::string fname;
+
+        std::unordered_map<std::string, std::string> settings;
+        bool saveOnClose;
+
+    public:
+
+        SettingsFile(const std::string& filename, bool save_on_close);
+
+        std::string GetValue(const std::string& key);
+        void SetValue(const std::string& key, const std::string& value);
+
+        void Save();
+
+        ~SettingsFile();
+
+        SettingsFile(const SettingsFile&) = delete;
+        SettingsFile(SettingsFile&&) = delete;
+        SettingsFile& operator=(SettingsFile&&) = delete;
+        SettingsFile& operator=(const SettingsFile&) = delete;
+        
+    };
+
 }
 #endif
