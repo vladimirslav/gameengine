@@ -43,8 +43,8 @@ private:
     int w;
     int h;
 
-    SDL_DisplayMode displayMode;
     SDL_Window* screen;
+    SDL_DisplayMode displayMode;
 
     SDL_Color bgColor;
 
@@ -57,15 +57,16 @@ private:
     std::stack<Uint8> alphaValues;
 
 public:
-    const SDL_Color BLACK = SDL_Color{ 0, 0, 0, 255 };
+    const SDL_Color BLACK;
 
-    Graph(int w, int h, const std::string caption);
+    Graph(int w, int h, const std::string& caption);
     ~Graph();
     const int &GetWidth() const;
     const int &GetHeight() const;
 
     void ToggleFullscreen();
 
+    void SetIcon(const std::string& icon_name);
     void SetBgColor(SDL_Color color);
     void Flip();
     void FillScreen(const SDL_Color& color);

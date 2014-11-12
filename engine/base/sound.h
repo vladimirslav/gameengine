@@ -28,11 +28,17 @@ namespace EngineSound
     typedef size_t sound_id;
 
     void InitAudio();
+    void FadeOutMusic(int ms);
+    void FadeInMusic(sound_id m_id, int ms);
     sound_id LoadSound(std::string sound_file);
     sound_id LoadMusic(std::string music_file);
     void StopAudio();
     void ClearAudio();
 
+    void EnableSound();
+    void DisableSound();
+
+    void PlaySound(sound_id s_id);
     void PlayMusic(sound_id m_id);
 }
 

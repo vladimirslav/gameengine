@@ -21,6 +21,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include "..\SDL2\include\SDL.h"
 #include <unordered_map>
+#include <vector>
 
 using namespace EngineSound;
 typedef std::unordered_map<std::string, sound_id> SoundIdMap;
@@ -31,10 +32,23 @@ static std::vector<Mix_Chunk*> sounds;
 static SoundIdMap preloadedMusic;
 static std::vector<Mix_Music*> music;
 
+static bool soundEnabled = true;
+
 void EngineSound::InitAudio()
 {
     ClearAudio();
     SDL_assert_release(Mix_OpenAudio(48000, MIX_DEFAULT_FORMAT, 2, 4096) == 0);
+    //Mix_AllocateChannels(8);
+}
+
+void EngineSound::EnableSound()
+{
+    soundEnabled = true;
+}
+
+void EngineSound::DisableSound()
+{
+    soundEnabled = false;
 }
 
 sound_id EngineSound::LoadSound(std::string sound_file)
@@ -84,7 +98,7 @@ void EngineSound::ClearAudio()
     }
     music.clear();
     preloadedMusic.clear();
-
+    //Mix_AllocateChannels(0);
     Mix_CloseAudio();
 }
 
@@ -92,6 +106,27 @@ void EngineSound::PlayMusic(sound_id m_id)
 {
     if (music.size() > m_id)
     {
-        Mix_PlayMusic(music[m_id], -1);
+        SDL_assert_release(Mix_PlayMusic(music[m_id], -1) == 0);
+    }
+}
+
+void EngineSound::PlaySound(sound_id s_id)
+{
+    if (sounds.size() > s_id && soundEnabled)
+    {
+        Mix_PlayChannel(-1, sounds[s_id], 0);
+    }
+}
+
+void EngineSound::FadeOutMusic(int ms)
+{
+    Mix_FadeOutMusic(ms);
+}
+
+void EngineSound::FadeInMusic(sound_id m_id, int ms)
+{
+    if (music.size() > m_id)
+    {
+        SDL_assert_release(Mix_FadeInMusic(music[m_id], -1, ms) == 0);
     }
 }

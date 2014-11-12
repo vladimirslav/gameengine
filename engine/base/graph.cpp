@@ -24,7 +24,7 @@ const SDL_Color F_WHITE = { 255, 255, 255, 255 };
 const SDL_Color F_RED = { 255, 0, 0, 0 };
 const SDL_Color F_BLACK = { 0, 0, 0, 0 };
 
-const SDL_Color SELF_WHITE = {255,255,255};
+const SDL_Color SELF_WHITE = { 255, 255, 255, 255};
 
 /*
  * Initialize the window, where all stuff will be drawn
@@ -33,11 +33,11 @@ const SDL_Color SELF_WHITE = {255,255,255};
  * @param fontFile - file with TTF font to be used
  * @param caption - window caption
 */
-Graph::Graph(int _w, int _h, const std::string caption)
-    : screen(NULL)
-    , w(_w)
+Graph::Graph(int _w, int _h, const std::string& caption)
+    : w(_w)
     , h(_h)
     , renderer(NULL)
+    ,  BLACK(SDL_Color{ 0, 0, 0, 0 })
 {
     SDL_SetAssertionHandler(EngineRoutines::handler, NULL);
 
@@ -48,7 +48,7 @@ Graph::Graph(int _w, int _h, const std::string caption)
 
     screen = SDL_CreateWindow(caption.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, _w, _h, SDL_WINDOW_SHOWN);
     SDL_assert_release(screen != NULL);
-    
+
     renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_assert_release(renderer != NULL);
 
@@ -57,7 +57,7 @@ Graph::Graph(int _w, int _h, const std::string caption)
 
 Graph::~Graph()
 {
-    
+
     FreeTextures();
     FreeFonts();
     TTF_Quit();
@@ -113,7 +113,7 @@ void Graph::Flip()
     SDL_RenderPresent(renderer);
 }
 
-/* 
+/*
  * Fill the screen with the given color
 */
 void Graph::FillScreen(const SDL_Color& color)
@@ -247,6 +247,8 @@ void Graph::DrawTexture(int x, int y, sprite_id texture)
 
 void Graph::DrawTextureStretched(SDL_Texture* texture)
 {
+    SDL_assert_release(SDL_SetTextureAlphaMod(texture, alphaValues.top()) == 0);
+    SDL_assert_release(SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND) == 0);
     SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, NULL) == 0);
 }
 
@@ -398,7 +400,7 @@ void Graph::FreeTextures()
 
 void Graph::ApplyFilter(int x, int y, size_t w, size_t h, SDL_Color& color)
 {
-    SDL_Rect target{ x, y, w, h };
+    SDL_Rect target{ x, y, static_cast<int>(w), static_cast<int>(h) };
 
     SDL_BlendMode currentBlend;
     SDL_GetRenderDrawBlendMode(renderer, &currentBlend);
@@ -418,7 +420,7 @@ void Graph::GrayScaleFilter(int x, int y, size_t w, size_t h)
     SDL_RenderReadPixels(renderer, &target, 0, pixels, 0);
     for (int i = 0; i != w; ++i)
     {
-        
+
         for (int y = 0; y != SDL_GetVideoSurface()->h; ++y)
         {
             Uint8 r = 0;
@@ -435,7 +437,7 @@ void Graph::GrayScaleFilter(int x, int y, size_t w, size_t h)
 
 void Graph::DrawRect(int x, int y, size_t w, size_t h, const SDL_Color& color)
 {
-    SDL_Rect box{ x, y, w, h };
+    SDL_Rect box{ x, y, static_cast<int>(w), static_cast<int>(h) };
     SDL_BlendMode currentBlend;
     SDL_GetRenderDrawBlendMode(renderer, &currentBlend);
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
@@ -468,4 +470,11 @@ void Graph::PushAlpha(Uint8 new_alpha)
 void Graph::PopAlpha()
 {
     alphaValues.pop();
+}
+
+void Graph::SetIcon(const std::string& icon_name)
+{
+    SDL_Surface* icon = SDL_LoadBMP(icon_name.c_str());
+    SDL_SetWindowIcon(screen, icon);
+    SDL_FreeSurface(icon);
 }

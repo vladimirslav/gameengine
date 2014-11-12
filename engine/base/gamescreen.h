@@ -28,7 +28,15 @@ class GameScreen
 protected:
     Graph* g;
     Timer particle_timer;
-    
+    sprite_id fadeOutSprite;
+    size_t fadeOutTime;
+    size_t fadeOutStart;
+    bool fadingOut;
+
+    sprite_id fadeInSprite;
+    size_t fadeInTime;
+    size_t fadeInStart;
+    bool fadingIn;
 public:
     GameScreen(Graph& g);
     virtual GameScreen* Process();
@@ -37,6 +45,11 @@ public:
     virtual Graph* GetGraph();
     virtual int GetCurrentTime();
     virtual ~GameScreen() {};
+
+    virtual void FadeIn(sprite_id fadeInSprite, size_t fadeInTime);
+    virtual void OnFadeIn();
+    virtual void FadeOut(sprite_id fadeOutSprite, size_t fadeOutTime);
+    virtual void OnFadeOut();
 };
 
 #endif

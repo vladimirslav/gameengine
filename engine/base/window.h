@@ -48,16 +48,16 @@ namespace EngineWindow
         int fontHeight;
 
     public:
-        GameWindow(int x, 
-                   int y, 
-                   size_t w, 
-                   size_t h, 
+        GameWindow(int x,
+                   int y,
+                   size_t w,
+                   size_t h,
                    size_t borderWidth,
                    size_t fontId,
-                   Graph& g, 
-                   SDL_Color color, 
+                   Graph& g,
+                   SDL_Color color,
                    SDL_Color borderColor);
-        ~GameWindow();
+        virtual ~GameWindow();
 
         virtual void Draw();
         virtual void Update(const SDL_Event& event);

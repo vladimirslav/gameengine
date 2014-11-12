@@ -34,7 +34,7 @@ SDL_assert_state EngineRoutines::handler(const SDL_assert_data* data,
 #ifdef _DEBUG
     return SDL_ASSERTION_BREAK;
 #else
-    return SDL_ASSERTION_IGNORE;
+    return SDL_ASSERTION_ABORT;
 #endif
 }
 
@@ -50,8 +50,8 @@ void EngineRoutines::InitRand()
 }
 
 EngineRoutines::SettingsFile::SettingsFile(const std::string& filename, bool save_on_close)
-    : saveOnClose(save_on_close)
-    , fname(filename)
+    : fname(filename)
+    , saveOnClose(save_on_close)
 {
 
     std::ifstream f(filename);
@@ -106,7 +106,7 @@ std::string EngineRoutines::SettingsFile::GetValue(const std::string& key)
     {
         return settings[key];
     }
-    
+
     return "";
 }
 
@@ -123,7 +123,7 @@ void EngineRoutines::SettingsFile::Save()
     {
         for (const auto& setting : settings)
         {
-            f << setting.first + "=" + setting.second;
+            f << setting.first + "=" + setting.second << std::endl;
         }
         f.close();
     }
