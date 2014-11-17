@@ -77,7 +77,7 @@ sound_id EngineSound::LoadMusic(std::string music_file)
     return music.size() - 1;
 }
 
-void EngineSound::StopAudio()
+void EngineSound::StopMusic()
 {
     Mix_PausedMusic();
     Mix_HaltMusic();

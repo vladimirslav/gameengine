@@ -32,7 +32,7 @@ namespace EngineSound
     void FadeInMusic(sound_id m_id, int ms);
     sound_id LoadSound(std::string sound_file);
     sound_id LoadMusic(std::string music_file);
-    void StopAudio();
+    void StopMusic();
     void ClearAudio();
 
     void EnableSound();

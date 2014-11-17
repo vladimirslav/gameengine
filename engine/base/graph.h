@@ -112,6 +112,9 @@ public:
     void PushAlpha(Uint8 new_alpha);
     void PopAlpha();
 
+    void HideCursor();
+    void ShowCursor();
+
 private:
     void WriteText(TTF_Font* f, const std::string& str, int x, int y, const SDL_Color& color);
 

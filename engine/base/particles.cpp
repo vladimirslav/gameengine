@@ -150,8 +150,8 @@ void AnimatedParticle::Update(int new_time)
 
 void AnimatedParticle::Draw(Graph* g)
 {
-    SDL_Rect frame{GetX(), GetY(), drawnW, drawnH};
-    SDL_Rect framePart{ currentFrame * frameW, 0, frameW, frameH };
+    SDL_Rect frame{GetX(), GetY(), static_cast<int>(drawnW), static_cast<int>(drawnH)};
+    SDL_Rect framePart{ static_cast<int>(currentFrame * frameW), 0, static_cast<int>(frameW), static_cast<int>(frameH) };
     g->DrawTexture(&frame, texture, &framePart, 0, SDL_FLIP_NONE);
 }
 

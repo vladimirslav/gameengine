@@ -174,6 +174,23 @@ void Graph::WriteNormal(size_t fontHandler, const std::string& str, int x, int y
 
 void Graph::WriteParagraph(font_id fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color)
 {
+    if (str.empty())
+    {
+        return;
+    }
+    SDL_Surface* message = TTF_RenderText_Blended_Wrapped(fonts[fontHandler], str.c_str(), color, maxW);
+    SDL_assert_release(message != NULL);
+    SDL_Texture* preparedMsg = SDL_CreateTextureFromSurface(renderer, message);
+    SDL_assert_release(preparedMsg != NULL);
+    SDL_Rect dstrect;
+    dstrect.x = x;
+    dstrect.y = y;
+    SDL_assert_release(SDL_QueryTexture(preparedMsg, NULL, NULL, &dstrect.w, &dstrect.h) == 0);
+    SDL_assert_release(SDL_RenderCopy(renderer, preparedMsg, NULL, &dstrect) == 0);
+    SDL_FreeSurface(message);
+    SDL_DestroyTexture(preparedMsg);
+    return;
+    /*
     size_t i = 0;
     size_t row = 0;
     if (str.size() > 0)
@@ -221,6 +238,7 @@ void Graph::WriteParagraph(font_id fontHandler, const std::string& str, int x, i
             row++;
         }
     }
+    */
 }
 
 void Graph::GetTextSize(font_id fontHandler, const std::string& str, int* w, int* h)
@@ -470,6 +488,16 @@ void Graph::PushAlpha(Uint8 new_alpha)
 void Graph::PopAlpha()
 {
     alphaValues.pop();
+}
+
+void Graph::HideCursor()
+{
+    SDL_ShowCursor(SDL_DISABLE);
+}
+
+void Graph::ShowCursor()
+{
+    SDL_ShowCursor(SDL_ENABLE);
 }
 
 void Graph::SetIcon(const std::string& icon_name)
