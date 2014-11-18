@@ -18,6 +18,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include "graph.h"
+#include "countdown.h"
 
 #ifndef __PARTICLES_H__
 #define __PARTICLES_H__
@@ -47,7 +48,7 @@ namespace EngineParticles
         virtual sprite_id GetTexture();
         virtual SDL_Rect* GetFrame();
         virtual void Update(int new_time);
-        
+
         virtual ~Particle();
 
         virtual void Draw(Graph* g);
@@ -78,7 +79,7 @@ namespace EngineParticles
 
         size_t currentFrame;
         size_t frameAmount;
-        
+
     public:
         AnimatedParticle(sprite_id _texture,
                          int _x,
@@ -108,6 +109,25 @@ namespace EngineParticles
     public:
         MovingTextParticle(sprite_id _texture, int _x, int _y, int _life, int _dx, int _dy, int _time, size_t fontId, std::string text, SDL_Color color);
         virtual void Draw(Graph* gui);
+    };
+
+    class FadingOutPointerParticle : public EngineParticles::Particle
+    {
+    protected:
+        EngineTimer::CountdownTimer t;
+
+        int moveX;
+        int moveY;
+
+        int dx;
+        int dy;
+
+        int maxDx;
+        int maxDy;
+    public:
+        FadingOutPointerParticle(sprite_id _texture, int _x, int _y, int _life, int _time, int maxDx, int maxDy);
+        virtual void Draw(Graph* gui);
+        virtual void Update(int new_time);
     };
 
     void Update(int time);

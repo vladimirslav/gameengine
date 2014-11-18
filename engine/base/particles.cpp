@@ -195,3 +195,84 @@ void EngineParticles::Clear()
 
     particles.clear();
 }
+
+FadingOutPointerParticle::FadingOutPointerParticle(sprite_id _texture, int _x, int _y, int _life, int _time, int maxDx, int maxDy)
+    : Particle(_texture, _x, _y, _life, _time)
+    , t(_life)
+    , moveX(0)
+    , moveY(0)
+    , dx(0)
+    , dy(0)
+    , maxDx(maxDx)
+    , maxDy(maxDy)
+{
+    if (maxDx != 0)
+    {
+        dx = (maxDx > 0) ? 1 : -1;
+    }
+
+    if (maxDy != 0)
+    {
+        dy = (maxDy > 0) ? 1 : -1;
+    }
+}
+
+void FadingOutPointerParticle::Draw(Graph* gui)
+{
+    gui->PushAlpha(255 * t.RemainingPart());
+    gui->DrawTexture(x + moveX, y + moveY, texture);
+    gui->PopAlpha();
+}
+
+void FadingOutPointerParticle::Update(int new_time)
+{
+    if (maxDx > 0)
+    {
+        if (x + moveX >= x + maxDx)
+        {
+            dx = -1;
+        }
+        else if (x + moveX <= x)
+        {
+            dx = 1;
+        }
+    }
+    else if (maxDx < 0)
+    {
+        if (x + moveX <= x + maxDx)
+        {
+            dx = 1;
+        }
+        else if (x + moveX >= x)
+        {
+            dx = -1;
+        }
+    }
+
+    if (maxDy > 0)
+    {
+        if (y + moveY >= y + maxDy)
+        {
+            dy = -1;
+        }
+        else if (y + moveY <= y)
+        {
+            dy = 1;
+        }
+    }
+    else if (maxDy < 0)
+    {
+        if (y + moveY <= y + maxDy)
+        {
+            dy = 1;
+        }
+        else if (y + moveY >= y)
+        {
+            dy = -1;
+        }
+    }
+
+    moveX += dx;
+    moveY += dy;
+    Particle::Update(new_time);
+}

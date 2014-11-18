@@ -36,6 +36,4 @@ public:
     void Unpause();
 };
 
-
-
 #endif
