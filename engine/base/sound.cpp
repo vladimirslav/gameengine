@@ -34,6 +34,9 @@ static std::vector<Mix_Music*> music;
 
 static bool soundEnabled = true;
 
+static int currentMusicVolume = MIX_MAX_VOLUME;
+static int currentSoundVolume = MIX_MAX_VOLUME;
+
 void EngineSound::InitAudio()
 {
     ClearAudio();
@@ -107,6 +110,7 @@ void EngineSound::PlayMusic(sound_id m_id)
     if (music.size() > m_id)
     {
         SDL_assert_release(Mix_PlayMusic(music[m_id], -1) == 0);
+        Mix_VolumeMusic(currentMusicVolume);
     }
 }
 
@@ -128,5 +132,17 @@ void EngineSound::FadeInMusic(sound_id m_id, int ms)
     if (music.size() > m_id)
     {
         SDL_assert_release(Mix_FadeInMusic(music[m_id], -1, ms) == 0);
+        Mix_VolumeMusic(currentMusicVolume);
     }
+}
+
+void EngineSound::SetMusicVolume(size_t percent)
+{
+    currentMusicVolume = static_cast<int>(MIX_MAX_VOLUME * static_cast<double>(percent) / 100);
+    Mix_VolumeMusic(currentMusicVolume);
+}
+void EngineSound::SetSoundVolume(size_t percent)
+{
+    currentSoundVolume = static_cast<int>(MIX_MAX_VOLUME * static_cast<double>(percent) / 100);
+    Mix_Volume(-1, currentSoundVolume);
 }

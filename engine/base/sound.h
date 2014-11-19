@@ -40,6 +40,9 @@ namespace EngineSound
 
     void PlaySound(sound_id s_id);
     void PlayMusic(sound_id m_id);
+
+    void SetMusicVolume(size_t percent);
+    void SetSoundVolume(size_t percent);
 }
 
 #endif
