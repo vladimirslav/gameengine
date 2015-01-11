@@ -141,6 +141,7 @@ void EngineSound::SetMusicVolume(size_t percent)
     currentMusicVolume = static_cast<int>(MIX_MAX_VOLUME * static_cast<double>(percent) / 100);
     Mix_VolumeMusic(currentMusicVolume);
 }
+
 void EngineSound::SetSoundVolume(size_t percent)
 {
     currentSoundVolume = static_cast<int>(MIX_MAX_VOLUME * static_cast<double>(percent) / 100);

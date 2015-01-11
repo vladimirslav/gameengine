@@ -54,7 +54,7 @@ void GameScreen::Draw()
         }
         else
         {
-            fadeAlpha *= static_cast<double>(particle_timer.GetTicks() - fadeOutStart) / static_cast<double>(fadeOutTime);
+			fadeAlpha *= static_cast<Uint8>(static_cast<double>(particle_timer.GetTicks() - fadeOutStart) / static_cast<double>(fadeOutTime));
             //("%d %d %f", particle_timer.GetTicks(), fadeOutStart, fadeOutTime);
         }
         g->PushAlpha(fadeAlpha);
@@ -76,7 +76,7 @@ void GameScreen::Draw()
         }
         else
         {
-            fadeAlpha *= (1 - static_cast<double>(particle_timer.GetTicks() - fadeInStart) / static_cast<double>(fadeInTime));
+			fadeAlpha *= static_cast<Uint8>(1 - static_cast<double>(particle_timer.GetTicks() - fadeInStart) / static_cast<double>(fadeInTime));
         }
         g->PushAlpha(fadeAlpha);
         g->DrawTextureStretched(g->GetTexture(fadeInSprite));

@@ -219,7 +219,7 @@ FadingOutPointerParticle::FadingOutPointerParticle(sprite_id _texture, int _x, i
 
 void FadingOutPointerParticle::Draw(Graph* gui)
 {
-    gui->PushAlpha(255 * t.RemainingPart());
+    gui->PushAlpha(static_cast<Uint8>(255 * t.RemainingPart()));
     gui->DrawTexture(x + moveX, y + moveY, texture);
     gui->PopAlpha();
 }
