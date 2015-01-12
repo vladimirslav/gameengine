@@ -250,6 +250,7 @@ void CollisionGrid::CheckCollissions()
 		i++;
 	}
 
+	i = 0;
 	while (i < objects.size())
 	{
 		if (objects[i]->ShouldBeDeleted())
