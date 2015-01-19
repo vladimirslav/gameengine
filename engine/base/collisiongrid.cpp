@@ -125,13 +125,15 @@ bool Collideable::ShouldBeDeleted()
 	return needsToBeDeleted;
 }
 
-CollisionGrid::CollisionGrid(int w_in_pixels, int h_in_pixels, size_t square_w, size_t square_h)
+CollisionGrid::CollisionGrid(int top_border, int left_border, int w_in_pixels, int h_in_pixels, size_t square_w, size_t square_h)
 	: wPixels(w_in_pixels)
 	, hPixels(h_in_pixels)
 	, squareWidth(square_w)
 	, squareHeight(square_h)
 	, wSquares(w_in_pixels / square_w + ((w_in_pixels % square_w > 0) ? 1 : 0))
 	, hSquares(h_in_pixels / square_h + ((h_in_pixels % square_w > 0) ? 1 : 0))
+	, topBorder(top_border)
+	, leftBorder(left_border)
 {
 	objMap = new Collideable**[wSquares];
 	for (size_t i = 0; i < wSquares; i++)
@@ -177,8 +179,8 @@ bool CollisionGrid::CollidesWithBoundary(Collideable* obj, double nx, double ny)
 {
 	return (nx + obj->GetWidth() < wPixels &&
 		    ny + obj->GetHeight() < hPixels &&
-		    nx >= 0 &&
-		    ny >= 0) == false;
+		    nx >= leftBorder &&
+		    ny >= topBorder) == false;
 }
 
 bool CollisionGrid::Check(Collideable* obj, double nx, double ny)
@@ -191,9 +193,9 @@ void CollisionGrid::AddObject(Collideable* new_obj)
 	objects.push_back(new_obj);
 }
 
-std::vector<Collideable*>& CollisionGrid::GetObjects()
+std::vector<Collideable*>* CollisionGrid::GetObjects()
 {
-	return objects;
+	return &objects;
 }
 
 void CollisionGrid::CheckCollissions()
@@ -217,7 +219,6 @@ void CollisionGrid::CheckCollissions()
 
 	for (i = 0; i < wSquares; i++)
 	{
-		objMap[i] = new Collideable*[hSquares];
 		memset(objMap[i], 0, sizeof(Collideable*) * hSquares);
 	}
 
@@ -241,8 +242,11 @@ void CollisionGrid::CheckCollissions()
 					}
 					else
 					{
-						objects[i]->Collide(objMap[x][y]);
-						objMap[x][y]->Collide(objects[i]);
+						if (objects[i]->ShouldBeDeleted() == false && objMap[x][y]->ShouldBeDeleted() == false)
+						{
+							objects[i]->Collide(objMap[x][y]);
+							objMap[x][y]->Collide(objects[i]);
+						}
 					}
 				}
 			}

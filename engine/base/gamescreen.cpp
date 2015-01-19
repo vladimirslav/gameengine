@@ -30,6 +30,7 @@ GameScreen::GameScreen(Graph& g)
     , fadeInStart(0)
     , fadingIn(false)
 {
+	memset(keyStates, 0, sizeof(keyStates));
     particle_timer.Reset();
 }
 

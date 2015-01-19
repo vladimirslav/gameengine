@@ -37,6 +37,8 @@ protected:
     size_t fadeInTime;
     size_t fadeInStart;
     bool fadingIn;
+
+	bool keyStates[SDL_NUM_SCANCODES];
 public:
     GameScreen(Graph& g);
     virtual GameScreen* Process();

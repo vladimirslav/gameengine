@@ -78,6 +78,9 @@ protected:
 	int wPixels;
 	int hPixels;
 
+	int topBorder;
+	int leftBorder;
+
 	size_t wSquares;
 	size_t hSquares;
 
@@ -89,11 +92,11 @@ protected:
 	std::vector<Collideable*> objects;
 
 public:
-	CollisionGrid(int w_in_pixels, int h_in_pixels, size_t square_w, size_t square_h);
+	CollisionGrid(int top_border, int left_border, int w_in_pixels, int h_in_pixels, size_t square_w, size_t square_h);
 
 	virtual void CheckCollissions();
 
-	std::vector<Collideable*>& GetObjects();
+	std::vector<Collideable*>* GetObjects();
 
 	virtual void AddObject(Collideable* new_obj);
 

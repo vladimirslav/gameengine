@@ -25,7 +25,7 @@ Timer::Timer()
     paused = false;
 }
 
-size_t Timer::GetTicks()
+size_t Timer::GetTicks() const
 {
     if (paused)
     {

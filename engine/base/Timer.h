@@ -30,7 +30,7 @@ private:
     bool paused;
 public:
     Timer();
-    size_t GetTicks();
+    size_t GetTicks() const;
     void Reset();
     void Pause();
     void Unpause();
