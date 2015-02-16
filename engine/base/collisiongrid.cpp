@@ -125,6 +125,11 @@ bool Collideable::ShouldBeDeleted()
 	return needsToBeDeleted;
 }
 
+void Collideable::DeleteOnNextCheck()
+{
+    needsToBeDeleted = true;
+}
+
 CollisionGrid::CollisionGrid(int top_border, int left_border, int w_in_pixels, int h_in_pixels, size_t square_w, size_t square_h)
 	: wPixels(w_in_pixels)
 	, hPixels(h_in_pixels)
@@ -198,7 +203,7 @@ std::vector<Collideable*>* CollisionGrid::GetObjects()
 	return &objects;
 }
 
-void CollisionGrid::CheckCollissions()
+void CollisionGrid::CheckCollissions(bool do_cleanup)
 {
 	size_t i = 0;
 	while (i < objects.size())
@@ -228,10 +233,10 @@ void CollisionGrid::CheckCollissions()
 		bool** gridMap = objects[i]->GetGrid();
 		size_t objW = objects[i]->GetGridW();
 		size_t objH = objects[i]->GetGridH();
-		int initialX = std::max(static_cast<int>(objects[i]->GetX()) / static_cast<int>(squareWidth), 0);
+		int initialX = std::max((static_cast<int>(objects[i]->GetX()) - leftBorder) / static_cast<int>(squareWidth), 0);
 		for (int x = initialX; x < std::min(initialX + static_cast<int>(objW), static_cast<int>(wSquares) - 1); x++)
 		{
-			int initialY = std::max(static_cast<int>(objects[i]->GetY()) / static_cast<int>(squareHeight), 0);
+			int initialY = std::max((static_cast<int>(objects[i]->GetY()) - topBorder) / static_cast<int>(squareHeight), 0);
 			for (int y = initialY; y < std::min(initialY + static_cast<int>(objH), static_cast<int>(hSquares) - 1); y++)
 			{
 				if (gridMap[x - initialX][y - initialY])
@@ -253,20 +258,73 @@ void CollisionGrid::CheckCollissions()
 		}
 		i++;
 	}
-
-	i = 0;
-	while (i < objects.size())
-	{
-		if (objects[i]->ShouldBeDeleted())
-		{
-			delete objects[i];
-			objects.erase(objects.begin() + i);
-		}
-		else
-		{
-			i++;
-		}
-	}
 	
+    if (do_cleanup)
+    {
+        Cleanup();
+    }
 	//for (int i = 0; i < objects.size())
+}
+
+void CollisionGrid::Cleanup()
+{
+    size_t i = 0;
+    while (i < objects.size())
+    {
+        if (objects[i]->ShouldBeDeleted())
+        {
+            delete objects[i];
+            objects.erase(objects.begin() + i);
+        }
+        else
+        {
+            i++;
+        }
+    }
+}
+
+int CollisionGrid::GetTopBorder() const
+{
+    return topBorder;
+}
+
+Collideable* CollisionGrid::GetObjectFromCoordinates(int x, int y)
+{
+    int gridX = 0;
+    int gridY = 0;
+
+    GetGridCoordinates(x, y, &gridX, &gridY);
+    //int gridX = (x - leftBorder) / squareWidth;
+    //int gridY = (y - topBorder) / squareHeight;
+
+    if (gridX >= 0 && gridX < static_cast<int>(wSquares) && 
+        gridY >= 0 && gridY < static_cast<int>(hSquares))
+    {
+        return objMap[gridX][gridY];
+    }
+
+    return nullptr;
+}
+
+Collideable* CollisionGrid::GetObjectFromGridCoordinates(int x, int y)
+{
+
+    if (x >= 0 && x < static_cast<int>(wSquares) &&
+        y >= 0 && y < static_cast<int>(hSquares))
+    {
+        return objMap[x][y];
+    }
+
+    return nullptr;
+}
+
+void CollisionGrid::GetGridCoordinates(int mousex, int mousey, int* x, int *y)
+{
+    if (x == nullptr || y == nullptr)
+    {
+        return;
+    }
+
+    *x = (mousex - leftBorder) / squareWidth;
+    *y = (mousey - topBorder) / squareHeight;
 }

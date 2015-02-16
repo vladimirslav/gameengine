@@ -23,6 +23,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "graph.h"
 #include "Timer.h"
 
+enum MouseStates
+{
+    MS_LEFT,
+    MS_RIGHT,
+    MS_MIDDLE,
+    MS_MAX
+};
+
 class GameScreen
 {
 protected:
@@ -39,6 +47,10 @@ protected:
     bool fadingIn;
 
 	bool keyStates[SDL_NUM_SCANCODES];
+    bool mouseStates[MS_MAX];
+
+    int mousex;
+    int mousey;
 public:
     GameScreen(Graph& g);
     virtual GameScreen* Process();
@@ -52,6 +64,69 @@ public:
     virtual void OnFadeIn();
     virtual void FadeOut(sprite_id fadeOutSprite, size_t fadeOutTime);
     virtual void OnFadeOut();
+
+    virtual void ProcessEvent(SDL_Event& event);
+};
+
+
+class Button
+{
+public:
+    Button(int x, int y, int width, int height, const std::string& label);
+    int x;
+    int y;
+    int width;
+    int height;
+    std::string label;
+};
+
+class TextButton : public Button
+{
+public:
+    TextButton(int x, int y, int width, int height, const std::string& label);
+};
+
+class OptionButton : public Button
+{
+public:
+    std::string value;
+    OptionButton(int x, int y, int width, int height, const std::string& label, const std::string& value);
+};
+
+class SelectionScreen : public GameScreen
+{
+protected:
+    font_id font;
+    int maxPos;
+    int currentPos;
+
+    size_t topButtonMargin;
+    size_t leftButtonMargin;
+    size_t buttonWidth;
+    size_t buttonHeight;
+
+    size_t buttonAmount;
+
+    Button** buttons;
+    const char** buttonText;
+
+public:
+    SelectionScreen(Graph& g,
+                    int max_pos, 
+                    int initial_pos,
+                    size_t top_button_margin,
+                    size_t left_button_margin,
+                    size_t button_width,
+                    size_t button_height, 
+                    const char* button_text[],
+                    size_t button_amount,
+                    font_id font);
+
+    virtual void PopulateButtons();
+    virtual void DrawButton(int index);
+    virtual void ProcessEvent(SDL_Event& event);
+    virtual GameScreen* PushButton(size_t index);
+    virtual ~SelectionScreen();
 };
 
 #endif

@@ -47,6 +47,8 @@ namespace EngineRoutines
         SettingsFile(const std::string& filename, bool save_on_close);
 
         std::string GetValue(const std::string& key);
+        int GetValueAsInt(const std::string& key, int defaultValue = 0);
+
         void SetValue(const std::string& key, const std::string& value);
 
         void Save();

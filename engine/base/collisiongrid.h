@@ -69,6 +69,7 @@ public:
 	size_t GetGridH() const;
 
 	bool ShouldBeDeleted();
+    void DeleteOnNextCheck();
 };
 
 class CollisionGrid
@@ -94,7 +95,8 @@ protected:
 public:
 	CollisionGrid(int top_border, int left_border, int w_in_pixels, int h_in_pixels, size_t square_w, size_t square_h);
 
-	virtual void CheckCollissions();
+	virtual void CheckCollissions(bool do_cleanup = true);
+    virtual void Cleanup();
 
 	std::vector<Collideable*>* GetObjects();
 
@@ -104,6 +106,11 @@ public:
 	bool Check(Collideable* obj, double nx, double ny);
 
 	bool CollidesWithBoundary(Collideable* obj, double nx, double ny);
+    int GetTopBorder() const;
+
+    virtual Collideable* GetObjectFromCoordinates(int x, int y);
+    virtual Collideable* GetObjectFromGridCoordinates(int x, int y);
+    virtual void GetGridCoordinates(int mousex, int mousey, int* x, int *y);
 
 	~CollisionGrid();
 };

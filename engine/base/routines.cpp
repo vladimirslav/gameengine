@@ -110,6 +110,17 @@ std::string EngineRoutines::SettingsFile::GetValue(const std::string& key)
     return "";
 }
 
+int EngineRoutines::SettingsFile::GetValueAsInt(const std::string& key, int defaultValue)
+{
+    if (settings.find(key) != settings.end())
+    {
+        return std::atoi(settings[key].c_str());
+    }
+
+    SetValue(key, std::to_string(defaultValue));
+    return defaultValue;
+}
+
 void EngineRoutines::SettingsFile::SetValue(const std::string& key, const std::string& value)
 {
     settings[key] = value;
