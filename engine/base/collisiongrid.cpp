@@ -281,6 +281,11 @@ void CollisionGrid::Cleanup()
             i++;
         }
     }
+
+	for (i = 0; i < wSquares; i++)
+	{
+		memset(objMap[i], 0, sizeof(Collideable*) * hSquares);
+	}
 }
 
 int CollisionGrid::GetTopBorder() const
