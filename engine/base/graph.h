@@ -56,6 +56,9 @@ private:
 
     std::stack<Uint8> alphaValues;
 
+	int shakeDeltaX;
+	int shakeDeltaY;
+
 public:
     const SDL_Color BLACK;
 
@@ -114,6 +117,9 @@ public:
 
     void HideCursor();
     void ShowCursor();
+
+	void SetShake(size_t time, int deltax, int deltay);
+	void StopShake();
 
 private:
     void WriteText(TTF_Font* f, const std::string& str, int x, int y, const SDL_Color& color);

@@ -18,13 +18,17 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include "graph.h"
+#include "countdown.h"
 #include <vector>
+#include <string>
 
 const SDL_Color F_WHITE = { 255, 255, 255, 255 };
 const SDL_Color F_RED = { 255, 0, 0, 0 };
 const SDL_Color F_BLACK = { 0, 0, 0, 0 };
 
 const SDL_Color SELF_WHITE = { 255, 255, 255, 255};
+
+static const std::string SHAKE_TIMER = "shakeTimerScreen";
 
 /*
  * Initialize the window, where all stuff will be drawn
@@ -36,6 +40,8 @@ const SDL_Color SELF_WHITE = { 255, 255, 255, 255};
 Graph::Graph(int _w, int _h, const std::string& caption)
     : w(_w)
     , h(_h)
+	, shakeDeltaX(0)
+	, shakeDeltaY(0)
     , renderer(NULL)
     ,  BLACK(SDL_Color{ 0, 0, 0, 0 })
 {
@@ -100,7 +106,21 @@ void Graph::SetBgColor(SDL_Color color)
 */
 void Graph::ClrScr()
 {
-    SetViewPort(0, 0, w, h);
+    //SetViewPort(0, 0, w, h);
+	int xdelta = 0; 
+	int ydelta = 0;
+	
+	if (EngineTimer::IsActive(SHAKE_TIMER))
+	{
+		/*
+		xdelta = shakeDeltaX - rand() % (shakeDeltaX * 2);
+		ydelta = shakeDeltaY - rand() % (shakeDeltaY * 2);
+		*/
+		xdelta = rand() % shakeDeltaX;
+		ydelta = rand() % shakeDeltaY;
+	}
+
+	SetViewPort(xdelta, ydelta, w + xdelta, h + ydelta);
     SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
     SDL_RenderClear(renderer);
 }
@@ -109,7 +129,7 @@ void Graph::ClrScr()
  * Flip the buffer
 */
 void Graph::Flip()
-{
+{	
     SDL_RenderPresent(renderer);
 }
 
@@ -505,4 +525,16 @@ void Graph::SetIcon(const std::string& icon_name)
     SDL_Surface* icon = SDL_LoadBMP(icon_name.c_str());
     SDL_SetWindowIcon(screen, icon);
     SDL_FreeSurface(icon);
+}
+
+void Graph::SetShake(size_t time, int deltax, int deltay)
+{
+	EngineTimer::StartTimer(SHAKE_TIMER, time);
+	shakeDeltaX = deltax;
+	shakeDeltaY = deltay;
+}
+
+void StopShake()
+{
+	EngineTimer::StartTimer(SHAKE_TIMER, 0);
 }
