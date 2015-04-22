@@ -21,7 +21,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #define __GAMESCREEN_H__
 
 #include "graph.h"
-#include "Timer.h"
+#include "window.h"
 
 enum MouseStates
 {
@@ -31,20 +31,10 @@ enum MouseStates
     MS_MAX
 };
 
-class GameScreen
+class GameScreen : public EngineWindow::GameWindow
 {
 protected:
     Graph* g;
-    Timer particle_timer;
-    sprite_id fadeOutSprite;
-    size_t fadeOutTime;
-    size_t fadeOutStart;
-    bool fadingOut;
-
-    sprite_id fadeInSprite;
-    size_t fadeInTime;
-    size_t fadeInStart;
-    bool fadingIn;
 
 	bool keyStates[SDL_NUM_SCANCODES];
     bool mouseStates[MS_MAX];
@@ -52,18 +42,12 @@ protected:
     int mousex;
     int mousey;
 public:
-    GameScreen(Graph& g);
+	GameScreen(Graph& g, size_t fontId);
     virtual GameScreen* Process();
     virtual void Draw();
     virtual size_t GetCurrentFont();
     virtual Graph* GetGraph();
-    virtual int GetCurrentTime();
     virtual ~GameScreen() {};
-
-    virtual void FadeIn(sprite_id fadeInSprite, size_t fadeInTime);
-    virtual void OnFadeIn();
-    virtual void FadeOut(sprite_id fadeOutSprite, size_t fadeOutTime);
-    virtual void OnFadeOut();
 
     virtual void ProcessEvent(SDL_Event& event);
 };
@@ -96,7 +80,6 @@ public:
 class SelectionScreen : public GameScreen
 {
 protected:
-    font_id font;
     int maxPos;
     int currentPos;
 

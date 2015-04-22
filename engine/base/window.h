@@ -21,6 +21,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #define __WINDOW_H__
 
 #include "graph.h"
+#include "Timer.h"
 
 namespace EngineWindow
 {
@@ -44,8 +45,22 @@ namespace EngineWindow
 
         size_t borderWidth;
 
-        size_t fontId;
-        int fontHeight;
+        size_t mainfont;
+        int mainfontHeight;
+
+		sprite_id fadeOutSprite;
+		size_t fadeOutTime;
+		size_t fadeOutStart;
+		bool fadingOut;
+
+		sprite_id fadeInSprite;
+		size_t fadeInTime;
+		size_t fadeInStart;
+		bool fadingIn;
+
+		Timer particle_timer;
+
+		bool deleteOnFadeout;
 
     public:
         GameWindow(int x,
@@ -56,11 +71,22 @@ namespace EngineWindow
                    size_t fontId,
                    Graph& g,
                    SDL_Color color,
-                   SDL_Color borderColor);
+                   SDL_Color borderColor,
+				   bool addToWindowStack);
         virtual ~GameWindow();
 
         virtual void Draw();
         virtual void Update(const SDL_Event& event);
+
+		virtual void FadeIn(sprite_id fadeInSprite, size_t fadeInTime);
+		virtual void OnFadeIn();
+		virtual void FadeOut(sprite_id fadeOutSprite, size_t fadeOutTime, bool deleteOnFadeout = false);
+		virtual void OnFadeOut();
+
+		virtual void StartDraw();
+		virtual void EndDraw();
+
+		virtual int GetCurrentTime();
     };
 
     class NotificationWindow : public GameWindow
