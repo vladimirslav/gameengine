@@ -39,26 +39,8 @@ namespace EngineWindow
 		SDL_Color color,
 		SDL_Color borderColor,
 		bool addToWindowStack)
-		: x(x)
-		, y(y)
-		, width(w)
-		, height(h)
-		, g(&g)
-		, color(color)
-		, borderColor(borderColor)
-		, borderWidth(borderWidth)
-		, mainfont(fontId)
-		, fadeOutSprite(0)
-		, fadeOutTime(0)
-		, fadeOutStart(0)
-		, fadingOut(false)
-		, fadeInTime(0)
-		, fadeInStart(0)
-		, fadingIn(false)
-		, deleteOnFadeout(false)
+		: UiObject(x, y, w, h, g, color, borderColor, borderWidth, fontId)
     {
-        int tmp = 0;
-        g.GetTextSize(fontId, "Test", &tmp, &mainfontHeight);
 		particle_timer.Reset();
 		if (addToWindowStack)
 		{
@@ -78,102 +60,12 @@ namespace EngineWindow
 
     void GameWindow::Draw()
     {
-		if (fadingOut)
-		{
-			Uint8 fadeAlpha = 255;
-			if (particle_timer.GetTicks() - fadeOutStart >= fadeOutTime)
-			{
-				fadeAlpha = 255;
-				if (fadingOut)
-				{
-					fadingOut = false;
-					OnFadeOut();
-				}
-			}
-			else
-			{
-				fadeAlpha = static_cast<Uint8>(255 * static_cast<double>(particle_timer.GetTicks() - fadeOutStart) / static_cast<double>(fadeOutTime));
-				//("%d %d %f", particle_timer.GetTicks(), fadeOutStart, fadeOutTime);
-			}
-			if (fadeOutSprite != 0)
-			{
-				g->PushAlpha(fadeAlpha);
-				g->DrawTextureStretched(x, y, width, height, g->GetTexture(fadeOutSprite));
-				g->PopAlpha();
-			}
-			//g->DrawTextureStretched(g->GetTexture(fadeOutSprite));
-		}
-
-		if (fadingIn)
-		{
-			Uint8 fadeAlpha = 255;
-			if (particle_timer.GetTicks() - fadeInStart >= fadeInTime)
-			{
-				fadeAlpha = 0;
-				if (fadingIn)
-				{
-					fadingIn = false;
-					OnFadeIn();
-				}
-			}
-			else
-			{
-				double timeDiff = static_cast<double>(particle_timer.GetTicks() - fadeInStart);
-				fadeAlpha = static_cast<Uint8>(255 * (1 -  timeDiff / static_cast<double>(fadeInTime)));
-			}
-			
-			if (fadeInSprite != 0)
-			{
-				g->PushAlpha(fadeAlpha);
-				g->DrawTextureStretched(x, y, width, height, g->GetTexture(fadeInSprite));
-				g->PopAlpha();
-			}
-			//g->DrawTextureStretched(g->GetTexture(fadeInSprite));
-		}
+		UiObject::Draw();
     }
-
-	void GameWindow::StartDraw()
-	{
-		if (fadingIn)
-		{
-			if (particle_timer.GetTicks() - fadeInStart >= fadeInTime)
-			{
-				fadingIn = false;
-				OnFadeIn();
-				g->PushAlpha(255);
-			}
-			else
-			{
-				g->PushAlpha(static_cast<Uint8>(255 * static_cast<double>(particle_timer.GetTicks() - fadeInStart) / static_cast<double>(fadeInTime)));
-			}
-		}
-		else if (fadingOut)
-		{
-			if (particle_timer.GetTicks() - fadeOutStart >= fadeOutTime)
-			{
-				fadingOut = false;
-				OnFadeOut();
-				g->PushAlpha(0);
-			}
-			else
-			{
-				g->PushAlpha(static_cast<Uint8>(255 * (1 - static_cast<double>(particle_timer.GetTicks() - fadeOutStart) / static_cast<double>(fadeOutTime))));
-			}
-		}
-		else
-		{
-			g->PushAlpha(255);
-		}
-	}
-
-	void GameWindow::EndDraw()
-	{
-		g->PopAlpha();
-	}
 
     void GameWindow::Update(const SDL_Event& event)
     {
-		if (fadingIn || fadingOut)
+		if (fadeState != FadeState::NO_FADE)
 		{
 			return; 
 		}
@@ -193,17 +85,6 @@ namespace EngineWindow
         }
     }
 
-	void GameWindow::FadeOut(sprite_id fadeOutSprite, size_t fadeOutTime, bool deleteOnFadeout)
-	{
-		fadingOut = true;
-		fadingIn = false;
-		this->fadeOutSprite = fadeOutSprite;
-		this->fadeOutTime = fadeOutTime;
-		this->deleteOnFadeout = deleteOnFadeout;
-		EngineSound::FadeOutMusic(static_cast<int>(fadeOutTime));
-		fadeOutStart = particle_timer.GetTicks();
-	}
-
 	void GameWindow::OnFadeOut()
 	{
 		if (deleteOnFadeout)
@@ -212,20 +93,6 @@ namespace EngineWindow
 			sdlevent.type = SDL_QUIT;
 			SDL_PushEvent(&sdlevent);
 		}
-	}
-
-	void GameWindow::FadeIn(sprite_id fadeInSprite, size_t fadeInTime)
-	{
-		fadingIn = true;
-		fadingOut = false;
-		this->fadeInSprite = fadeInSprite;
-		this->fadeInTime = fadeInTime;
-		fadeInStart = particle_timer.GetTicks();
-	}
-
-	void GameWindow::OnFadeIn()
-	{
-
 	}
 
 	int GameWindow::GetCurrentTime()

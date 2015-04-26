@@ -23,6 +23,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "graph.h"
 #include "Timer.h"
 
+#include "uiobject.h"
+
 namespace EngineWindow
 {
     enum class ConfirmationChoice
@@ -32,35 +34,10 @@ namespace EngineWindow
         NONE,
     };
 
-    class GameWindow
+    class GameWindow : public UiObject
     {
     protected:
-        int x;
-        int y;
-        size_t width;
-        size_t height;
-        Graph* g;
-        SDL_Color color;
-        SDL_Color borderColor;
-
-        size_t borderWidth;
-
-        size_t mainfont;
-        int mainfontHeight;
-
-		sprite_id fadeOutSprite;
-		size_t fadeOutTime;
-		size_t fadeOutStart;
-		bool fadingOut;
-
-		sprite_id fadeInSprite;
-		size_t fadeInTime;
-		size_t fadeInStart;
-		bool fadingIn;
-
 		Timer particle_timer;
-
-		bool deleteOnFadeout;
 
     public:
         GameWindow(int x,
@@ -78,13 +55,7 @@ namespace EngineWindow
         virtual void Draw();
         virtual void Update(const SDL_Event& event);
 
-		virtual void FadeIn(sprite_id fadeInSprite, size_t fadeInTime);
-		virtual void OnFadeIn();
-		virtual void FadeOut(sprite_id fadeOutSprite, size_t fadeOutTime, bool deleteOnFadeout = false);
 		virtual void OnFadeOut();
-
-		virtual void StartDraw();
-		virtual void EndDraw();
 
 		virtual int GetCurrentTime();
     };

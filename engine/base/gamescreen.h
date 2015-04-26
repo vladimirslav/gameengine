@@ -44,6 +44,8 @@ protected:
 public:
 	GameScreen(Graph& g, size_t fontId);
     virtual GameScreen* Process();
+    virtual void StartDraw();
+    virtual void EndDraw();
     virtual void Draw();
     virtual size_t GetCurrentFont();
     virtual Graph* GetGraph();

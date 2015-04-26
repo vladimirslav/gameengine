@@ -56,10 +56,21 @@ void GameScreen::ProcessEvent(SDL_Event& event)
     }
 }
 
+void GameScreen::StartDraw()
+{
+    g->ClrScr();
+    GameWindow::StartDraw();
+}
+
 void GameScreen::Draw()
 {
 	GameWindow::Draw();
-	g->Flip();
+}
+
+void GameScreen::EndDraw()
+{
+    GameWindow::EndDraw();
+    g->Flip();
 }
 
 size_t GameScreen::GetCurrentFont()

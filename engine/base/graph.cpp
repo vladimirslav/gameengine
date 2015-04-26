@@ -388,6 +388,7 @@ sprite_id Graph::LoadTexture(std::string filename)
     SDL_Texture* result = IMG_LoadTexture(renderer, filename.c_str());
     SDL_assert_release(result != NULL);
     sprites.push_back(result);
+    preloadedSprites[filename] = sprites.size() - 1;
     return sprites.size() - 1;
 }
 
@@ -418,6 +419,7 @@ sprite_id Graph::LoadTextureAlphaPink(std::string filename)
 
     SDL_assert_release(prepared_texture != NULL);
     sprites.push_back(prepared_texture);
+    preloadedSprites[filename] = sprites.size() - 1;
     return sprites.size() - 1;
 }
 
