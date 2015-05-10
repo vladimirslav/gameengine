@@ -1,4 +1,5 @@
 #include "uiobject.h"
+#include "ui\uibutton.h"
 
 UiObject::UiObject(int x,
 				   int y,
@@ -22,6 +23,8 @@ UiObject::UiObject(int x,
 	, deleteOnFadeout(false)
 	, fadeState(FadeState::NO_FADE)
 	, fadeMode(FadeMode::SPRITE_FADE)
+    , mouseOver(false)
+    , isClicked(false)
 {
 	int tmp = 0;
 	g.GetTextSize(fontId, "Test", &tmp, &mainfontHeight);
@@ -47,12 +50,55 @@ void UiObject::StartDraw()
 
 void UiObject::Draw()
 {
-	//StartDraw();
-	//EndDraw();
+    DrawButtons();
+}
+
+void UiObject::Update(const SDL_Event& event)
+{
+    if (event.type == SDL_MOUSEMOTION)
+    {
+        if (event.motion.x >= x && event.motion.x <= x + static_cast<int>(width) &&
+            event.motion.y >= y && event.motion.y <= y + static_cast<int>(height))
+        {
+            mouseOver = true;
+        }
+        else
+        {
+            mouseOver = false;
+        }
+    }
+    else if (mouseOver && event.type == SDL_MOUSEBUTTONUP)
+    {
+        switch (event.button.button)
+        {
+        case SDL_BUTTON_LEFT:
+            isClicked = true;
+            break;
+        }
+    }
+}
+
+void UiObject::UpdateComponents(const SDL_Event& event)
+{
+    for (auto but : buttonList)
+    {
+        but->Update(event);
+    }
+}
+
+bool UiObject::HasMouseOver()
+{
+    return mouseOver;
+}
+
+bool UiObject::IsClicked()
+{
+    return isClicked;
 }
 
 void UiObject::EndDraw()
 {
+
     if (fadeMode == FadeMode::SPRITE_FADE)
     {
         Uint8 currentAlpha = 0;
@@ -124,4 +170,48 @@ void UiObject::FadeOut(FadeMode mode,
 
 void UiObject::OnFadeOut()
 {
+}
+
+void UiObject::SetX(int nx)
+{
+    x = nx;
+}
+
+void UiObject::SetY(int ny)
+{
+    y = ny;
+}
+
+void UiObject::AddButton(UiButton *button)
+{
+    buttonList.push_back(button);
+}
+
+void UiObject::AddButtonRelativePos(UiButton *button, int x, int y)
+{
+    button->SetX(this->x + x);
+    button->SetY(this->y + y);
+    buttonList.push_back(button);
+}
+
+void UiObject::ResetButtons()
+{
+    for (auto but : buttonList)
+    {
+        delete but;
+    }
+    buttonList.clear();
+}
+
+void UiObject::DrawButtons()
+{
+    for (auto but : buttonList)
+    {
+        but->Draw();
+    }
+}
+
+UiObject::~UiObject()
+{
+    ResetButtons();
 }

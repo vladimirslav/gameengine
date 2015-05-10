@@ -7,6 +7,9 @@
     <Filter Include="Base">
       <UniqueIdentifier>{d2b517f1-bca6-4ca8-b618-403d9ec153f2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Base\ui">
+      <UniqueIdentifier>{9a0c688f-caed-41fb-ae7b-d65ace807018}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\engine\SDL2\include\begin_code.h">
@@ -240,6 +243,12 @@
     <ClInclude Include="..\..\engine\base\uiobject.h">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\engine\base\ui\uibutton.h">
+      <Filter>Base\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\engine\base\ui\uilabel.h">
+      <Filter>Base\ui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\engine\base\routines.cpp">
@@ -274,6 +283,12 @@
     </ClCompile>
     <ClCompile Include="..\..\engine\base\uiobject.cpp">
       <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\engine\base\ui\uibutton.cpp">
+      <Filter>Base\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\engine\base\ui\uilabel.cpp">
+      <Filter>Base\ui</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
