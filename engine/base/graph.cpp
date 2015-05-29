@@ -44,6 +44,8 @@ Graph::Graph(int _w, int _h, const std::string& caption)
 	, shakeDeltaY(0)
     , renderer(NULL)
     ,  BLACK(SDL_Color{ 0, 0, 0, 0 })
+    , cursor(nullptr)
+    , currentCursorType(CursorType::ARROW)
 {
     SDL_SetAssertionHandler(EngineRoutines::handler, NULL);
 
@@ -57,8 +59,11 @@ Graph::Graph(int _w, int _h, const std::string& caption)
 
     renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_assert_release(renderer != NULL);
-
+    
     alphaValues.push(255);
+
+    cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+    SDL_SetCursor(cursor);
 }
 
 Graph::~Graph()
@@ -68,6 +73,7 @@ Graph::~Graph()
     FreeFonts();
     TTF_Quit();
 
+    SDL_FreeCursor(cursor);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(screen);
 
@@ -539,4 +545,22 @@ void Graph::SetShake(size_t time, int deltax, int deltay)
 void StopShake()
 {
 	EngineTimer::StartTimer(SHAKE_TIMER, 0);
+}
+
+void Graph::SwitchCursor(CursorType type)
+{
+    if (currentCursorType != type)
+    {
+        currentCursorType = type;
+        SDL_FreeCursor(cursor);
+        if (type == CursorType::POINTER)
+        {
+            cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+        }
+        else
+        {
+            cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+        }
+        SDL_SetCursor(cursor);
+    }
 }

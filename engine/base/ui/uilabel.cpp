@@ -18,5 +18,13 @@ UiLabel::UiLabel(int x,
 
 void UiLabel::Draw()
 {
-    g->WriteNormal(mainfont, text, x, y, color);
+    if (text.empty() == false)
+    {
+        g->WriteNormal(mainfont, text, x, y, color);
+    }
+}
+
+void UiLabel::setText(std::string newText)
+{
+    text = newText;
 }

@@ -21,6 +21,8 @@ public:
             std::string text);
 
     virtual void Draw();
+
+    virtual void setText(std::string newText);
 };
 
 #endif

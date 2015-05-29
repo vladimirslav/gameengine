@@ -25,6 +25,9 @@ UiObject::UiObject(int x,
 	, fadeMode(FadeMode::SPRITE_FADE)
     , mouseOver(false)
     , isClicked(false)
+    , isHidden(false)
+    , customId(0)
+    , onClick(nullptr)
 {
 	int tmp = 0;
 	g.GetTextSize(fontId, "Test", &tmp, &mainfontHeight);
@@ -50,11 +53,15 @@ void UiObject::StartDraw()
 
 void UiObject::Draw()
 {
-    DrawButtons();
+    if (isHidden == false)
+    {
+        DrawObjects();
+    }
 }
 
 void UiObject::Update(const SDL_Event& event)
 {
+    isClicked = false;
     if (event.type == SDL_MOUSEMOTION)
     {
         if (event.motion.x >= x && event.motion.x <= x + static_cast<int>(width) &&
@@ -80,7 +87,7 @@ void UiObject::Update(const SDL_Event& event)
 
 void UiObject::UpdateComponents(const SDL_Event& event)
 {
-    for (auto but : buttonList)
+    for (auto but : objectList)
     {
         but->Update(event);
     }
@@ -182,36 +189,87 @@ void UiObject::SetY(int ny)
     y = ny;
 }
 
-void UiObject::AddButton(UiButton *button)
+void UiObject::AddObject(UiObject *button)
 {
-    buttonList.push_back(button);
+    objectList.push_back(button);
 }
 
-void UiObject::AddButtonRelativePos(UiButton *button, int x, int y)
+void UiObject::AddObject(UiObject *button, int x, int y)
 {
     button->SetX(this->x + x);
     button->SetY(this->y + y);
-    buttonList.push_back(button);
+    objectList.push_back(button);
 }
 
-void UiObject::ResetButtons()
+void UiObject::AddObject(UiObject *button, int x, int y, int customId)
 {
-    for (auto but : buttonList)
+    button->setCustomId(customId);
+    this->AddObject(button, x, y);
+}
+
+void UiObject::ResetObjects()
+{
+    for (auto but : objectList)
     {
         delete but;
     }
-    buttonList.clear();
+    objectList.clear();
 }
 
-void UiObject::DrawButtons()
+void UiObject::DrawObjects()
 {
-    for (auto but : buttonList)
+    for (auto but : objectList)
     {
-        but->Draw();
+        if (but->IsHidden() == false)
+        {
+            but->Draw();
+        }
     }
 }
 
 UiObject::~UiObject()
 {
-    ResetButtons();
+    ResetObjects();
+}
+
+void UiObject::setCustomId(int newId)
+{
+    customId = newId;
+}
+
+int UiObject::getCustomId()
+{
+    return customId;
+}
+
+bool UiObject::IsHidden()
+{
+    return isHidden;
+}
+
+void UiObject::Show()
+{
+    isHidden = false;
+}
+
+void UiObject::Hide()
+{
+    isHidden = true;
+}
+
+void UiObject::SetCallback(callback clickCallback)
+{
+    onClick = clickCallback;
+}
+
+bool UiObject::Click()
+{
+    if (onClick != nullptr)
+    {
+        FadeIn(FadeMode::FADE_TO_BG, 0, 500);
+        onClick();
+        return true;
+    }
+
+    return false;
 }

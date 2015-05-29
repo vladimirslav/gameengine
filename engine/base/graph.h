@@ -37,9 +37,16 @@ typedef size_t font_id;
 typedef std::unordered_map<std::string, sprite_id> TextureIdMap;
 typedef std::vector<TTF_Font*> FontList;
 
+enum class CursorType
+{
+    ARROW,
+    POINTER
+};
+
 class Graph
 {
 private:
+
     int w;
     int h;
 
@@ -58,6 +65,9 @@ private:
 
 	int shakeDeltaX;
 	int shakeDeltaY;
+
+    SDL_Cursor* cursor;
+    CursorType currentCursorType;
 
 public:
     const SDL_Color BLACK;
@@ -120,6 +130,8 @@ public:
 
 	void SetShake(size_t time, int deltax, int deltay);
 	void StopShake();
+
+    void SwitchCursor(CursorType type);
 
 private:
     void WriteText(TTF_Font* f, const std::string& str, int x, int y, const SDL_Color& color);

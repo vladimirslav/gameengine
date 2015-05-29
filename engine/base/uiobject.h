@@ -21,6 +21,8 @@ enum class FadeState
 	FADE_OUT
 };
 
+typedef void (*callback)();
+
 class UiObject
 {
 protected:
@@ -46,10 +48,16 @@ protected:
 
 	EngineTimer::CountdownTimer fadeCountdown;
 
-    std::vector<UiButton*> buttonList;
+    std::vector<UiObject*> objectList;
 
     bool mouseOver;
     bool isClicked;
+
+    bool isHidden;
+
+    int customId;
+
+    callback onClick;
 
 public:
 	UiObject(int x,
@@ -76,16 +84,27 @@ public:
 	virtual void Draw();
 	virtual void EndDraw();
 
-    virtual void AddButton(UiButton *button);
-    virtual void AddButtonRelativePos(UiButton *button, int x, int y);
-    virtual void DrawButtons();
-    virtual void ResetButtons();
+    virtual void AddObject(UiObject *button);
+    virtual void AddObject(UiObject *button, int x, int y);
+    virtual void AddObject(UiObject *button, int x, int y, int customId);
+    virtual void DrawObjects();
+    virtual void ResetObjects();
 
     virtual void Update(const SDL_Event& event);
     virtual bool HasMouseOver();
     virtual bool IsClicked();
 
+    virtual void setCustomId(int newId);
+    virtual int  getCustomId();
+
     virtual void UpdateComponents(const SDL_Event& event);
+
+    virtual bool IsHidden();
+    virtual void Show();
+    virtual void Hide();
+
+    virtual void SetCallback(callback clickCallback);
+    virtual bool Click();
 };
 
 #endif
