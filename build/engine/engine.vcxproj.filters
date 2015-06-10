@@ -249,6 +249,9 @@
     <ClInclude Include="..\..\engine\base\ui\uilabel.h">
       <Filter>Base\ui</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\engine\base\eventhandler.h">
+      <Filter>Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\engine\base\routines.cpp">
@@ -289,6 +292,9 @@
     </ClCompile>
     <ClCompile Include="..\..\engine\base\ui\uilabel.cpp">
       <Filter>Base\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\engine\base\eventhandler.cpp">
+      <Filter>Base</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

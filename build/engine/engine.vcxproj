@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\engine\base\collisiongrid.h" />
     <ClInclude Include="..\..\engine\base\countdown.h" />
+    <ClInclude Include="..\..\engine\base\eventhandler.h" />
     <ClInclude Include="..\..\engine\base\gamescreen.h" />
     <ClInclude Include="..\..\engine\base\graph.h" />
     <ClInclude Include="..\..\engine\base\input.h" />
@@ -102,6 +103,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\engine\base\collisiongrid.cpp" />
     <ClCompile Include="..\..\engine\base\countdown.cpp" />
+    <ClCompile Include="..\..\engine\base\eventhandler.cpp" />
     <ClCompile Include="..\..\engine\base\gamescreen.cpp" />
     <ClCompile Include="..\..\engine\base\graph.cpp" />
     <ClCompile Include="..\..\engine\base\input.cpp" />
