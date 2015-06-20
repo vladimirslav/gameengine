@@ -252,6 +252,9 @@
     <ClInclude Include="..\..\engine\base\eventhandler.h">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\engine\base\sprite.h">
+      <Filter>Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\engine\base\routines.cpp">
@@ -294,6 +297,9 @@
       <Filter>Base\ui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\engine\base\eventhandler.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\engine\base\sprite.cpp">
       <Filter>Base</Filter>
     </ClCompile>
   </ItemGroup>
