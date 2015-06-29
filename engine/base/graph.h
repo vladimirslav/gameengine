@@ -65,6 +65,8 @@ private:
 
 	int shakeDeltaX;
 	int shakeDeltaY;
+    bool useShakeFilter;
+    SDL_Color shakeColor;
 
     SDL_Cursor* cursor;
     CursorType currentCursorType;
@@ -129,6 +131,7 @@ public:
     void ShowCursor();
 
 	void SetShake(size_t time, int deltax, int deltay);
+    void SetShake(size_t time, int deltax, int deltay, SDL_Color color);
 	void StopShake();
 
     void SwitchCursor(CursorType type);

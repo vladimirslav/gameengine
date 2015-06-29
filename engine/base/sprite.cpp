@@ -29,8 +29,10 @@ Sprite::Sprite(Graph* g,
                const std::string& initialAnim)
     : spriteBg(g->LoadTexture(spriteName))
     , animations(animations)
+    , direction(direction)
     , frameW(frameW)
     , frameH(frameH)
+    , frameNum(0)
     , lastFrameChangeTime(currentTime)
     , currentAnimName(initialAnim)
 {

@@ -121,9 +121,12 @@ void UiObject::EndDraw()
             break;
         }
 
-        g->PushAlpha(currentAlpha);
-        g->DrawTextureStretched(x, y, width, height, g->GetTexture(fadeSprite));
-        g->PopAlpha();
+        if (fadeState != FadeState::NO_FADE)
+        {
+            g->PushAlpha(currentAlpha);
+            g->DrawTextureStretched(x, y, width, height, g->GetTexture(fadeSprite));
+            g->PopAlpha();
+        }
     }
 
 

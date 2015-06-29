@@ -136,6 +136,13 @@ void Graph::ClrScr()
 */
 void Graph::Flip()
 {	
+    if (EngineTimer::IsActive(SHAKE_TIMER))
+    {
+        if (useShakeFilter)
+        {
+            ApplyFilter(0, 0, w, h, shakeColor);
+        }
+    }
     SDL_RenderPresent(renderer);
 }
 
@@ -537,9 +544,17 @@ void Graph::SetIcon(const std::string& icon_name)
 
 void Graph::SetShake(size_t time, int deltax, int deltay)
 {
+    useShakeFilter = false;
 	EngineTimer::StartTimer(SHAKE_TIMER, time);
 	shakeDeltaX = deltax;
 	shakeDeltaY = deltay;
+}
+
+void Graph::SetShake(size_t time, int deltax, int deltay, SDL_Color color)
+{
+    SetShake(time, deltax, deltay);
+    shakeColor = color;
+    useShakeFilter = true;
 }
 
 void StopShake()
