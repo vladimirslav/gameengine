@@ -32,6 +32,7 @@
     <ClInclude Include="..\..\engine\base\Timer.h" />
     <ClInclude Include="..\..\engine\base\uiobject.h" />
     <ClInclude Include="..\..\engine\base\ui\uibutton.h" />
+    <ClInclude Include="..\..\engine\base\ui\uiimage.h" />
     <ClInclude Include="..\..\engine\base\ui\uilabel.h" />
     <ClInclude Include="..\..\engine\base\window.h" />
     <ClInclude Include="..\..\engine\SDL2\include\begin_code.h" />
@@ -115,6 +116,7 @@
     <ClCompile Include="..\..\engine\base\Timer.cpp" />
     <ClCompile Include="..\..\engine\base\uiobject.cpp" />
     <ClCompile Include="..\..\engine\base\ui\uibutton.cpp" />
+    <ClCompile Include="..\..\engine\base\ui\uiimage.cpp" />
     <ClCompile Include="..\..\engine\base\ui\uilabel.cpp" />
     <ClCompile Include="..\..\engine\base\window.cpp" />
   </ItemGroup>

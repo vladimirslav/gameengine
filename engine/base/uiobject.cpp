@@ -29,8 +29,7 @@ UiObject::UiObject(int x,
     , customId(0)
     , onClick(nullptr)
 {
-	int tmp = 0;
-	g.GetTextSize(fontId, "Test", &tmp, &mainfontHeight);
+	g.GetTextSize(fontId, "T", &mainfontWidth, &mainfontHeight);
 }
 
 void UiObject::StartDraw()

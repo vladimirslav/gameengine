@@ -38,6 +38,7 @@ protected:
 	size_t borderWidth;
 
 	size_t mainfont;
+    int mainfontWidth;
 	int mainfontHeight;
 
 	sprite_id fadeSprite;
