@@ -23,6 +23,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 #ifndef __PARTICLES_H__
 #define __PARTICLES_H__
 
+using particleCallback = void (*)(void*);
+
 namespace EngineParticles
 {
 
@@ -36,6 +38,7 @@ namespace EngineParticles
         bool dead;
 
         sprite_id texture;
+        particleCallback callback; // called on death
 
     public:
 
@@ -44,7 +47,8 @@ namespace EngineParticles
         int GetX();
         int GetY();
 
-        Particle(sprite_id _texture, int _x, int _y, int _life, int _time);
+        Particle(sprite_id _texture, int _x, int _y, int _life, int _time, particleCallback callBack = nullptr);
+        virtual void setCallback(particleCallback callback);
         virtual sprite_id GetTexture();
         virtual SDL_Rect* GetFrame();
         virtual void Update(int new_time);
@@ -131,7 +135,7 @@ namespace EngineParticles
     };
 
     void Update(int time);
-    void Add(Particle* p);
+    void Add(Particle* p, particleCallback cb = nullptr);
     void Draw(Graph* gui);
     void Clear();
 }

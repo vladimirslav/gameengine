@@ -39,14 +39,18 @@ void Particle::Update(int new_time)
     }
 }
 
-Particle::Particle(sprite_id _texture, int _x, int _y, int _life, int _time)
-    : x(_x), y(_y), lives(_life), time(_time), texture(_texture)
+Particle::Particle(sprite_id _texture, int _x, int _y, int _life, int _time, particleCallback callBack)
+    : x(_x), y(_y), lives(_life), time(_time), texture(_texture), callback(callBack)
 {
     dead = false;
 };
 
 Particle::~Particle()
 {
+    if (callback != nullptr)
+    {
+        callback(nullptr);
+    }
 }
 
 bool Particle::IsDead()
@@ -67,6 +71,11 @@ int Particle::GetY()
 SDL_Rect* Particle::GetFrame()
 {
     return NULL;
+}
+
+void Particle::setCallback(particleCallback callback)
+{
+    this->callback = callback;
 }
 
 void Particle::Draw(Graph* g)
@@ -128,7 +137,7 @@ AnimatedParticle::AnimatedParticle(sprite_id _texture,
     , drawnW(drawn_w)
     , drawnH(drawn_h)
     , frameTime(frame_time)
-    , prevFrameSwitch(frame_time)
+    , prevFrameSwitch(_time)
     , currentFrame(0)
     , frameAmount(frame_amount)
 {
@@ -163,9 +172,13 @@ void EngineParticles::Update(int time)
     }
 }
 
-void EngineParticles::Add(Particle* p)
+void EngineParticles::Add(Particle* p, particleCallback cb)
 {
     particles.push_back(p);
+    if (cb != nullptr)
+    {
+        p->setCallback(cb);
+    }
 }
 
 void EngineParticles::Draw(Graph* gui)

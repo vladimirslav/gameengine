@@ -58,7 +58,7 @@ void Sprite::Draw(Graph* g, int x, int y)
     g->DrawTexture(x, y, spriteBg, &current, 0 ,direction == DIRECTION_RIGHT ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL);
 }
 
-void Sprite::Update(size_t newTime)
+bool Sprite::Update(size_t newTime)
 {
     if (newTime > lastFrameChangeTime + currentAnim->frameTime)
     {
@@ -66,10 +66,12 @@ void Sprite::Update(size_t newTime)
         if (frameNum >= currentAnim->frameAmount)
         {
             frameNum = 0;
+            return true; //animation ended
         }
 
         lastFrameChangeTime = newTime;
     }
+    return false;
 }
 
 bool Sprite::SwitchAnim(const std::string& newAnim)

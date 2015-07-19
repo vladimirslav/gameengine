@@ -50,7 +50,7 @@ public:
            size_t currentTime,
            const std::string& initialAnim);
     void Draw(Graph* g, int x, int y);
-    void Update(size_t newTime);
+    bool Update(size_t newTime); //true on animation ended
     void SetDirection(DIRECTION newDirection);
 
     // return true if anim with new id exists
