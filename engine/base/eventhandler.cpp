@@ -18,6 +18,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include "eventhandler.h"
+#include <algorithm>
 
 namespace EventHandling
 {
@@ -36,10 +37,9 @@ void EventDispatcher::AddHandler(EventHandler* new_handler)
 
 void EventDispatcher::RemoveHandler(EventHandler* handlerToRemove)
 {
-    auto position = std::find(handlers.cbegin(), handlers.cend(), handlerToRemove);
-    if (position != handlers.cend())
+    if (handlers.size() > 0)
     {
-        handlers.erase(position);
+        handlers.erase(std::remove(handlers.begin(), handlers.end(), handlerToRemove), handlers.end());
     }
 }
 

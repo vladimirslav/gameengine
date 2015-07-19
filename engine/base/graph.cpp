@@ -509,6 +509,18 @@ void Graph::SetViewPort(int x, int y, size_t w, size_t h)
     SDL_RenderSetViewport(renderer, &viewPort);
 }
 
+void Graph::DrawBorders(int x, int y, size_t w, size_t h, size_t thickness, const SDL_Color& color)
+{
+    for (size_t i = 0; i < thickness; i++)
+    {
+        DrawLine(x, y + i, x + w, y + i, color); // horizontal upper
+        DrawLine(x, y + h - i, x + w, y + h - i, color); // horizontal lower
+
+        DrawLine(x + i, y, x + i, y + h, color); // vertical left
+        DrawLine(x + w - i, y, x + w - i, y + h, color); // vertical right
+    }
+}
+
 void Graph::DrawLine(int x1, int y1, int x2, int y2, const SDL_Color& color)
 {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);

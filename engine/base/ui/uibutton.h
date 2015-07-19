@@ -7,6 +7,7 @@ class UiButton : public UiLabel
 {
 protected:
     bool hasBg;
+    bool stretchBg;
     sprite_id bg;
     SDL_RendererFlip flip;
 public:
@@ -30,9 +31,8 @@ public:
              SDL_Color color,
              SDL_Color borderColor,
              size_t borderWidth,
-             size_t fontId,
-             std::string text,
              sprite_id bg,
+             bool stretchBg,
              SDL_RendererFlip flip);
 
     virtual void Draw();

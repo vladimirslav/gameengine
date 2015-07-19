@@ -3,6 +3,7 @@
 
 #include "graph.h"
 #include "countdown.h"
+#include "eventhandler.h"
 
 #include <vector>
 
@@ -23,7 +24,7 @@ enum class FadeState
 
 typedef void (*callback)();
 
-class UiObject
+class UiObject : public EventHandling::EventHandler
 {
 protected:
 
@@ -106,6 +107,9 @@ public:
 
     virtual void SetCallback(callback clickCallback);
     virtual bool Click();
+
+    virtual void Receive(EventHandling::Event& e);
+
 };
 
 #endif

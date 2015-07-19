@@ -94,6 +94,8 @@ public:
     void WriteParagraph(font_id fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color);
 
     void FillRect(int x1, int y1, int x2, int y2, const SDL_Color& color);
+    void DrawRect(int x, int y, size_t w, size_t h, const SDL_Color& color);
+    void DrawBorders(int x, int y, size_t w, size_t h, size_t thickness, const SDL_Color& color);
 
     void DrawTexture(int x, int y, sprite_id texture);
     void DrawTexture(int x, int y, SDL_Texture* texture);
@@ -117,8 +119,6 @@ public:
 
     void GrayScaleFilter(int x, int y, size_t w, size_t h);
     void ApplyFilter(int x, int y, size_t w, size_t h, SDL_Color& color);
-
-    void DrawRect(int x, int y, size_t w, size_t h, const SDL_Color& color);
 
     void DrawLine(int x1, int y1, int x2, int y2, const SDL_Color& color);
 

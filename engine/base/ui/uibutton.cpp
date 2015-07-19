@@ -12,6 +12,7 @@ UiButton::UiButton(int x,
                    std::string text)
     : UiLabel(x, y, w, h, g, color, borderColor, borderWidth, fontId, text)
     , hasBg(false)
+    , stretchBg(false)
     , flip(SDL_FLIP_NONE)
 {
 }
@@ -24,13 +25,13 @@ UiButton::UiButton(int x,
                    SDL_Color color,
                    SDL_Color borderColor,
                    size_t borderWidth,
-                   size_t fontId,
-                   std::string text,
                    sprite_id bg,
+                   bool stretchBg,
                    SDL_RendererFlip flip)
-    : UiLabel(x, y, w, h, g, color, borderColor, borderWidth, fontId, text)
+    : UiLabel(x, y, w, h, g, color, borderColor, borderWidth, 0, "")
     , hasBg(true)
     , bg(bg)
+    , stretchBg(stretchBg)
     , flip(flip)
 {
 
@@ -41,7 +42,14 @@ void UiButton::Draw()
     StartDraw();
     if (hasBg)
     {
-        g->DrawTexture(x, y, bg, nullptr, 0, flip);
+        if (stretchBg)
+        {
+            g->DrawTextureStretched(x, y, width, height, g->GetTexture(bg));
+        }
+        else
+        {
+            g->DrawTexture(x, y, bg, nullptr, 0, flip);
+        }
     }
     else
     {

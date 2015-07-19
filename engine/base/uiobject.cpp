@@ -26,7 +26,7 @@ UiObject::UiObject(int x,
     , mouseOver(false)
     , isClicked(false)
     , isHidden(false)
-    , customId(0)
+    , customId(-1)
     , onClick(nullptr)
 {
 	g.GetTextSize(fontId, "T", &mainfontWidth, &mainfontHeight);
@@ -266,12 +266,17 @@ void UiObject::SetCallback(callback clickCallback)
 
 bool UiObject::Click()
 {
+    FadeIn(FadeMode::FADE_TO_BG, 0, 500);
     if (onClick != nullptr)
     {
-        FadeIn(FadeMode::FADE_TO_BG, 0, 500);
         onClick();
         return true;
     }
 
     return false;
+}
+
+void UiObject::Receive(EventHandling::Event& e)
+{
+
 }
