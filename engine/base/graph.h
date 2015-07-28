@@ -32,7 +32,18 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include <stack>
 
 typedef unsigned int sprite_id;
-typedef size_t font_id;
+
+struct FontDescriptor
+{
+    size_t tableId;
+
+    std::string fontName;
+    int sizeToLoad;
+
+    int width;
+    int height;
+    bool isLoaded;
+};
 
 typedef std::unordered_map<std::string, sprite_id> TextureIdMap;
 typedef std::vector<TTF_Font*> FontList;
@@ -88,10 +99,10 @@ public:
     void ClrScr();
     void PutPixel(int x, int y, const SDL_Color& color);
 
-    void GetTextSize(font_id fontHandler, const std::string& str, int* w, int* h);
-    void WriteNormal(font_id fontHandler, const std::string& str, int x, int y);
-    void WriteNormal(font_id fontHandler, const std::string& str, int x, int y, const SDL_Color& color);
-    void WriteParagraph(font_id fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color);
+    void GetTextSize(const FontDescriptor& fontHandler, const std::string& str, int* w, int* h);
+    void WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y);
+    void WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y, const SDL_Color& color);
+    void WriteParagraph(const FontDescriptor& fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color);
 
     void FillRect(int x1, int y1, int x2, int y2, const SDL_Color& color);
     void DrawRect(int x, int y, size_t w, size_t h, const SDL_Color& color);
@@ -114,7 +125,8 @@ public:
     void GetTextureSize(sprite_id id, size_t* w, size_t* h) const;
     void FreeTextures();
 
-    font_id LoadFont(const std::string& fileName, size_t size);
+    void LoadFontToDesc(FontDescriptor* desc);
+
     void FreeFonts();
 
     void GrayScaleFilter(int x, int y, size_t w, size_t h);

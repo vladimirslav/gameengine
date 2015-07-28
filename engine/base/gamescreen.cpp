@@ -19,7 +19,7 @@
 
 #include "gamescreen.h"
 
-GameScreen::GameScreen(Graph& g, size_t fontId)
+GameScreen::GameScreen(Graph& g, const FontDescriptor* fontId)
     : g(&g)
 	, GameWindow(0, 0, g.GetWidth(), g.GetHeight(), 0, fontId, g, { 0, 0, 0, 0 }, { 0, 0, 0, 0}, false)
 {
@@ -73,7 +73,7 @@ void GameScreen::EndDraw()
     g->Flip();
 }
 
-size_t GameScreen::GetCurrentFont()
+const FontDescriptor* GameScreen::GetCurrentFont()
 {
     return mainfont;
 }
@@ -114,7 +114,7 @@ SelectionScreen::SelectionScreen(Graph& g,
                                  size_t button_height,
                                  const char* button_text[],
                                  size_t button_amount,
-                                 font_id font)
+                                 FontDescriptor* font)
     : GameScreen(g, font)
     , maxPos(max_pos)
     , currentPos(initial_pos)
@@ -131,7 +131,7 @@ SelectionScreen::SelectionScreen(Graph& g,
 
 void SelectionScreen::DrawButton(int index)
 {
-    g->WriteNormal(mainfont, buttons[index]->label, buttons[index]->x, buttons[index]->y);
+    g->WriteNormal(*mainfont, buttons[index]->label, buttons[index]->x, buttons[index]->y);
 }
 
 void SelectionScreen::ProcessEvent(SDL_Event& event)

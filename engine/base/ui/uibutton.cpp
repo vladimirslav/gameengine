@@ -8,7 +8,7 @@ UiButton::UiButton(int x,
                    SDL_Color color,
                    SDL_Color borderColor,
                    size_t borderWidth,
-                   size_t fontId,
+                   const FontDescriptor* fontId,
                    std::string text)
     : UiLabel(x, y, w, h, g, color, borderColor, borderWidth, fontId, text)
     , hasBg(false)

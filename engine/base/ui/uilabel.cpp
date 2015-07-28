@@ -8,7 +8,7 @@ UiLabel::UiLabel(int x,
                  SDL_Color color,
                  SDL_Color borderColor,
                  size_t borderWidth,
-                 size_t fontId,
+                 const FontDescriptor* fontId,
                  std::string text)
     : UiObject(x, y, w, h, g, color, borderColor, borderWidth, fontId)
     , text(text)
@@ -20,7 +20,7 @@ void UiLabel::Draw()
 {
     if (text.empty() == false)
     {
-        g->WriteNormal(mainfont, text, x, y, color);
+        g->WriteNormal(*mainfont, text, x, y, color);
     }
 }
 

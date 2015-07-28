@@ -34,7 +34,7 @@ namespace EngineWindow
 		size_t w,
 		size_t h,
 		size_t borderWidth,
-		size_t fontId,
+		const FontDescriptor* fontId,
 		Graph& g,
 		SDL_Color color,
 		SDL_Color borderColor,
@@ -110,7 +110,7 @@ namespace EngineWindow
                                            SDL_Color borderColor,
                                            std::string message,
                                            SDL_Color textColor,
-                                           size_t fontId)
+                                           const FontDescriptor* fontId)
         : GameWindow(x, y, w, h, borderWidth, fontId, g, color, borderColor, true)
         , message(message)
         , textColor(textColor)
@@ -128,7 +128,7 @@ namespace EngineWindow
                                            size_t fontBorder,
                                            std::string message,
                                            SDL_Color textColor,
-                                           size_t fontId)
+                                           const FontDescriptor* fontId)
         : GameWindow(x, y, 0, 0, borderWidth, fontId, g, color, borderColor, true)
         , message(message)
         , textColor(textColor)
@@ -136,7 +136,7 @@ namespace EngineWindow
     {
         int newW;
         int newH;
-        g.GetTextSize(fontId, message, &newW, &newH);
+        g.GetTextSize(*fontId, message, &newW, &newH);
 
         width += fontBorder * 2 + newW;
         height += fontBorder * 2 + newH;
@@ -145,7 +145,7 @@ namespace EngineWindow
     void NotificationWindow::Draw()
     {
         GameWindow::Draw();
-        g->WriteParagraph(mainfont, message, x + fontBorder, y + height / 3, width - fontBorder * 2, fontBorder, textColor);
+        g->WriteParagraph(*mainfont, message, x + fontBorder, y + height / 3, width - fontBorder * 2, fontBorder, textColor);
     }
 
     void NotificationWindow::Update(const SDL_Event& event)
@@ -172,7 +172,7 @@ namespace EngineWindow
         sprite_id bg,
         std::string message,
         SDL_Color textColor,
-        size_t fontId)
+        const FontDescriptor* fontId)
         : GameWindow(x, y, w, h, borderWidth, fontId, g, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, true)
         , message(message)
         , textColor(textColor)
@@ -189,7 +189,7 @@ namespace EngineWindow
         size_t fontBorder,
         std::string message,
         SDL_Color textColor,
-        size_t fontId)
+        const FontDescriptor* fontId)
         : GameWindow(x, y, 0, 0, 0, fontId, g, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, true)
         , message(message)
         , textColor(textColor)
@@ -198,7 +198,7 @@ namespace EngineWindow
     {
         int newW;
         int newH;
-        g.GetTextSize(fontId, message, &newW, &newH);
+        g.GetTextSize(*fontId, message, &newW, &newH);
 
         width += fontBorder * 2 + newW;
         height += fontBorder * 2 + newH;
@@ -207,7 +207,7 @@ namespace EngineWindow
     void BGNotificationWindow::Draw()
     {
         g->DrawTextureStretched(x, y, width, height, g->GetTexture(bg));
-        g->WriteParagraph(mainfont, message, x + fontBorder, y + height / 3, width - fontBorder * 2, fontBorder, textColor);
+        g->WriteParagraph(*mainfont, message, x + fontBorder, y + height / 3, width - fontBorder * 2, fontBorder, textColor);
     }
 
     void BGNotificationWindow::Update(const SDL_Event& event)
@@ -232,34 +232,33 @@ namespace EngineWindow
                                            SDL_Color textColor,
                                            SDL_Color bgColor,
                                            SDL_Color borderColor,
-                                           size_t fontId)
-        : GameWindow(x, y, 0, 0, borderWidth ,fontId, g, bgColor, borderColor, true)
+                                           const FontDescriptor* font)
+        : GameWindow(x, y, 0, 0, borderWidth, font, g, bgColor, borderColor, true)
         , fontColor(textColor)
         , fontBorder(fontBorder)
         , message(message)
     {
         int newW;
         int newH;
-        g.GetTextSize(fontId, message, &newW, &newH);
+        g.GetTextSize(*font, message, &newW, &newH);
         int testW;
-        g.GetTextSize(fontId, "OKCancel", &testW, &newH);
+        g.GetTextSize(*font, "OKCancel", &testW, &newH);
         testW += 40;
         if (testW > newW)
         {
             newW = testW;
         }
         width += fontBorder * 2 + newW;
-        height += fontBorder * 2 + newH + 3 * mainfontHeight;
-        g.GetTextSize(fontId, "Cancel", &newW, &cancelTextW);
+        height += fontBorder * 2 + newH + 3 * font->height;
+        g.GetTextSize(*font, "Cancel", &newW, &cancelTextW);
     }
 
     void ConfirmationWindow::Draw()
     {
         GameWindow::Draw();
-        g->WriteParagraph(mainfont, message, x + fontBorder, y + height / 3, width - fontBorder * 2, fontBorder, fontColor);
-        g->WriteNormal(mainfont, "CANCEL", x + 20, y + height - mainfontHeight * 2, fontColor);
-        g->WriteNormal(mainfont, "OK", x + cancelTextW + 40, y + height - mainfontHeight * 2, fontColor);
-        
+        g->WriteParagraph(*mainfont, message, x + fontBorder, y + height / 3, width - fontBorder * 2, fontBorder, fontColor);
+        g->WriteNormal(*mainfont, "CANCEL", x + 20, y + height - mainfont->height * 2, fontColor);
+        g->WriteNormal(*mainfont, "OK", x + cancelTextW + 40, y + height - mainfont->height * 2, fontColor);
     }
 
     void ConfirmationWindow::Update(const SDL_Event& event)

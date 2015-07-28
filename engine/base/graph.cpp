@@ -80,13 +80,21 @@ Graph::~Graph()
     SDL_Quit();
 }
 
-/* Load font, return handler id to it */
-size_t Graph::LoadFont(const std::string& fileName, size_t size)
+/* Load font */
+void Graph::LoadFontToDesc(FontDescriptor* desc)
 {
-    TTF_Font* fnt = TTF_OpenFont(fileName.c_str(), size);
+    SDL_assert_release(desc != NULL);
+    SDL_assert_release(desc->isLoaded == false);
+
+    TTF_Font* fnt = TTF_OpenFont(desc->fontName.c_str(), desc->sizeToLoad);
     SDL_assert_release(fnt != NULL);
+
     fonts.push_back(fnt);
-    return fonts.size() - 1;
+
+    desc->tableId = fonts.size() - 1;
+    desc->isLoaded = true;
+
+    TTF_SizeText(fnt, "W", &desc->width, &desc->height);
 }
 
 void Graph::FreeFonts()
@@ -195,23 +203,23 @@ void Graph::WriteText(TTF_Font* f, const std::string& str, int x, int y, const S
     SDL_DestroyTexture(preparedMsg);
 }
 
-void Graph::WriteNormal(size_t fontHandler, const std::string& str, int x, int y)
+void Graph::WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y)
 {
-    WriteText(fonts[fontHandler], str, x, y, SELF_WHITE);
+    WriteText(fonts[fontHandler.tableId], str, x, y, SELF_WHITE);
 }
 
-void Graph::WriteNormal(size_t fontHandler, const std::string& str, int x, int y, const SDL_Color& color)
+void Graph::WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y, const SDL_Color& color)
 {
-    WriteText(fonts[fontHandler], str, x, y, color);
+    WriteText(fonts[fontHandler.tableId], str, x, y, color);
 }
 
-void Graph::WriteParagraph(font_id fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color)
+void Graph::WriteParagraph(const FontDescriptor& fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color)
 {
     if (str.empty())
     {
         return;
     }
-    SDL_Surface* message = TTF_RenderText_Blended_Wrapped(fonts[fontHandler], str.c_str(), color, maxW);
+    SDL_Surface* message = TTF_RenderText_Blended_Wrapped(fonts[fontHandler.tableId], str.c_str(), color, maxW);
     SDL_assert_release(message != NULL);
     SDL_Texture* preparedMsg = SDL_CreateTextureFromSurface(renderer, message);
     SDL_assert_release(preparedMsg != NULL);
@@ -223,60 +231,11 @@ void Graph::WriteParagraph(font_id fontHandler, const std::string& str, int x, i
     SDL_FreeSurface(message);
     SDL_DestroyTexture(preparedMsg);
     return;
-    /*
-    size_t i = 0;
-    size_t row = 0;
-    if (str.size() > 0)
-    {
-        while (i < str.size() - 1)
-        {
-            size_t final_letter = str.size() - 1;
-            size_t right_border = final_letter;
-            size_t left_border = i;
-
-            bool wrote = false;
-            do
-            {
-                int w = 0;
-                int h = 0;
-                GetTextSize(fontHandler, std::string(str.begin() + i, str.begin() + final_letter + 1), &w, &h);
-                if (w <= maxW)
-                {
-                    if (final_letter == str.size() - 1 || (maxW - w) <= static_cast<int>(allowedBarrier))
-                    {
-                        WriteNormal(fontHandler, std::string(str.begin() + i, str.begin() + final_letter + 1), x, y + row * h, color);
-                        wrote = true;
-                    }
-                    else
-                    {
-                        left_border = final_letter;
-                    }
-                }
-                else
-                {
-                    right_border = final_letter;
-                }
-
-                if (wrote == false)
-                {
-                    final_letter = (left_border + right_border) / 2;
-                    if (final_letter >= str.size())
-                    {
-                        final_letter = str.size() - 1;
-                    }
-                }
-            } while (wrote == false);
-
-            i = final_letter + 1;
-            row++;
-        }
-    }
-    */
 }
 
-void Graph::GetTextSize(font_id fontHandler, const std::string& str, int* w, int* h)
+void Graph::GetTextSize(const FontDescriptor& fontHandler, const std::string& str, int* w, int* h)
 {
-    SDL_assert_release(TTF_SizeText(fonts[fontHandler], str.c_str(), w, h) == 0);
+    SDL_assert_release(TTF_SizeText(fonts[fontHandler.tableId], str.c_str(), w, h) == 0);
 }
 
 void Graph::DrawTexture(int x, int y, SDL_Texture* texture)

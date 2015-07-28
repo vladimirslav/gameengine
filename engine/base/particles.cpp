@@ -105,9 +105,18 @@ void MovingParticle::Draw(Graph* gui)
     gui->DrawTexture(GetX(), GetY(), gui->GetTexture(GetTexture()), GetFrame(), 0, SDL_FLIP_NONE);
 }
 
-MovingTextParticle::MovingTextParticle(sprite_id _texture, int _x, int _y, int _life, int _dx, int _dy, int _time, size_t fontId, std::string text, SDL_Color color)
+MovingTextParticle::MovingTextParticle(sprite_id _texture,
+                                       int _x,
+                                       int _y,
+                                       int _life,
+                                       int _dx,
+                                       int _dy,
+                                       int _time,
+                                       const FontDescriptor* fontId, 
+                                       std::string text, 
+                                       SDL_Color color)
 : MovingParticle(_texture, _x, _y, _life, _dx, _dy, _time)
-, fontId(fontId)
+, font(fontId)
 , text(text)
 , color(color)
 {
@@ -115,7 +124,7 @@ MovingTextParticle::MovingTextParticle(sprite_id _texture, int _x, int _y, int _
 
 void MovingTextParticle::Draw(Graph* gui)
 {
-    gui->WriteNormal(fontId, text, x, y, color);
+    gui->WriteNormal(*font, text, x, y, color);
 }
 
 AnimatedParticle::AnimatedParticle(sprite_id _texture,

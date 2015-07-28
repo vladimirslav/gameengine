@@ -19,7 +19,7 @@ public:
              SDL_Color color,
              SDL_Color borderColor,
              size_t borderWidth,
-             size_t fontId,
+             const FontDescriptor* fontId,
              std::string text);
 
 

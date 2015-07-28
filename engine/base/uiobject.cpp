@@ -9,7 +9,7 @@ UiObject::UiObject(int x,
 				   SDL_Color color,
 				   SDL_Color borderColor,
 				   size_t borderWidth,
-				   size_t fontId)
+				   const FontDescriptor* font)
 	: x(x)
 	, y(y)
 	, width(w)
@@ -18,7 +18,7 @@ UiObject::UiObject(int x,
 	, color(color)
 	, borderColor(borderColor)
 	, borderWidth(borderWidth)
-	, mainfont(fontId)
+	, mainfont(font)
 	, fadeSprite(0)
 	, deleteOnFadeout(false)
 	, fadeState(FadeState::NO_FADE)
@@ -29,7 +29,6 @@ UiObject::UiObject(int x,
     , customId(-1)
     , onClick(nullptr)
 {
-	g.GetTextSize(fontId, "T", &mainfontWidth, &mainfontHeight);
 }
 
 void UiObject::StartDraw()

@@ -42,12 +42,12 @@ protected:
     int mousex;
     int mousey;
 public:
-	GameScreen(Graph& g, size_t fontId);
+	GameScreen(Graph& g, const FontDescriptor* fontId);
     virtual GameScreen* Process();
     virtual void StartDraw();
     virtual void EndDraw();
     virtual void Draw();
-    virtual size_t GetCurrentFont();
+    virtual const FontDescriptor* GetCurrentFont();
     virtual Graph* GetGraph();
     virtual ~GameScreen() {};
 
@@ -105,7 +105,7 @@ public:
                     size_t button_height, 
                     const char* button_text[],
                     size_t button_amount,
-                    font_id font);
+                    FontDescriptor* desc);
 
     virtual void PopulateButtons();
     virtual void DrawButton(int index);

@@ -38,9 +38,7 @@ protected:
 
 	size_t borderWidth;
 
-	size_t mainfont;
-    int mainfontWidth;
-	int mainfontHeight;
+	const FontDescriptor* mainfont;
 
 	sprite_id fadeSprite;
 	bool deleteOnFadeout;
@@ -70,7 +68,7 @@ public:
 			 SDL_Color color,
 			 SDL_Color borderColor,
 			 size_t borderWidth,
-			 size_t fontId);
+			 const FontDescriptor* font);
     ~UiObject();
 
     void SetX(int nx);

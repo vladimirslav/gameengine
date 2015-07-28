@@ -45,7 +45,7 @@ namespace EngineWindow
                    size_t w,
                    size_t h,
                    size_t borderWidth,
-                   size_t fontId,
+                   const FontDescriptor* fontId,
                    Graph& g,
                    SDL_Color color,
                    SDL_Color borderColor,
@@ -78,7 +78,7 @@ namespace EngineWindow
                            SDL_Color borderColor,
                            std::string message,
                            SDL_Color textColor,
-                           size_t fontId);
+                           const FontDescriptor* fontId);
 
         NotificationWindow(int x,
                            int y,
@@ -89,7 +89,7 @@ namespace EngineWindow
                            size_t fontBorder,
                            std::string message,
                            SDL_Color textColor,
-                           size_t fontId);
+                           const FontDescriptor* fontId);
         virtual void Draw();
         virtual void Update(const SDL_Event& event);
     };
@@ -112,7 +112,7 @@ namespace EngineWindow
             sprite_id bg,
             std::string message,
             SDL_Color textColor,
-            size_t fontId);
+            const FontDescriptor* fontId);
 
         BGNotificationWindow(int x,
             int y,
@@ -121,7 +121,7 @@ namespace EngineWindow
             size_t fontBorder,
             std::string message,
             SDL_Color textColor,
-            size_t fontId);
+            const FontDescriptor* fontId);
         virtual void Draw();
         virtual void Update(const SDL_Event& event);
     };
@@ -147,7 +147,7 @@ namespace EngineWindow
                            SDL_Color textColor,
                            SDL_Color bgColor,
                            SDL_Color borderColor,
-                           size_t fontId);
+                           const FontDescriptor* fontId);
 
         virtual void Draw();
         virtual void Update(const SDL_Event& event);
