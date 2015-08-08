@@ -54,7 +54,7 @@ public:
     void SetDirection(DIRECTION newDirection);
 
     // return true if anim with new id exists
-    bool SwitchAnim(const std::string& newAnim);
+    bool SwitchAnim(const std::string& newAnim, bool noRepeat = false);
     const std::string& getCurrentAnimationName() const;
 
 protected:
@@ -71,6 +71,7 @@ protected:
     const ANIM_INFO* currentAnim;
 
     size_t frameNum;
+    bool noRepeat;
 
 };
 

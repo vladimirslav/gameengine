@@ -23,6 +23,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "graph.h"
 #include "Timer.h"
 
+#include "sound.h"
 #include "uiobject.h"
 
 namespace EngineWindow
@@ -38,7 +39,10 @@ namespace EngineWindow
     {
     protected:
 		Timer particle_timer;
-
+        int index;
+        bool hasSound;
+        EngineSound::sound_id menuSound;
+        UiObject* activeObject;
     public:
         GameWindow(int x,
                    int y,

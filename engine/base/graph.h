@@ -73,6 +73,7 @@ private:
     FontList fonts;
 
     std::stack<Uint8> alphaValues;
+    std::stack<SDL_Color> textureColorValues;
 
 	int shakeDeltaX;
 	int shakeDeltaY;
@@ -138,6 +139,9 @@ public:
 
     void PushAlpha(Uint8 new_alpha);
     void PopAlpha();
+
+    void PushTextureColorValues(Uint8 r, Uint8 g, Uint8 b);
+    void PopTextureColorValue();
 
     void HideCursor();
     void ShowCursor();

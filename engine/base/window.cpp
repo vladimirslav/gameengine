@@ -40,6 +40,9 @@ namespace EngineWindow
 		SDL_Color borderColor,
 		bool addToWindowStack)
 		: UiObject(x, y, w, h, g, color, borderColor, borderWidth, fontId)
+        , index(-1)
+        , hasSound(false)
+        , activeObject(nullptr)
     {
 		particle_timer.Reset();
 		if (addToWindowStack)
@@ -65,6 +68,7 @@ namespace EngineWindow
 
     void GameWindow::Update(const SDL_Event& event)
     {
+        UpdateComponents(event);
 		if (fadeState != FadeState::NO_FADE)
 		{
 			return; 
@@ -72,16 +76,56 @@ namespace EngineWindow
 
         switch (event.type)
         {
+        case SDL_MOUSEMOTION:
+        {
+            if (event.motion.x > x &&
+                event.motion.x < x + static_cast<int>(width) &&
+                event.motion.y > y &&
+                event.motion.y < y + static_cast<int>(height))
+            {
+                g->SwitchCursor(CursorType::ARROW);
+                for (size_t i = 0; i < objectList.size(); i++)
+                {
+                    if (objectList[i]->HasMouseOver())
+                    {
+                        activeObject = objectList[i];
+                        g->SwitchCursor(CursorType::POINTER);
+                        if (index != objectList[i]->getCustomId())
+                        {
+                            if (hasSound)
+                            {
+                                EngineSound::PlaySound(menuSound);
+                            }
+                            index = objectList[i]->getCustomId();
+                            objectList[i]->FadeIn(FadeMode::FADE_TO_BG, 0, 200);
+                        }
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+        case SDL_MOUSEBUTTONUP:
+        {
+            for (size_t i = 0; i < objectList.size(); i++)
+            {
+                if (objectList[i]->IsClicked())
+                {
+                    if (objectList[i]->Click() == false)
+                    {
+                        SDL_Event sdlevent;
+                        sdlevent.type = SDL_KEYDOWN;
+                        sdlevent.key.keysym.sym = SDLK_RETURN;
+                        SDL_PushEvent(&sdlevent);
+                    }
+                    break;
+                }
+            }
+            break;
+        }
         case SDL_QUIT:
             delete this;
             break;
-        case SDL_KEYDOWN:
-            switch (event.key.keysym.sym)
-            {
-            case SDLK_ESCAPE:
-                delete this;
-                break;
-            }
         }
     }
 
@@ -214,9 +258,8 @@ namespace EngineWindow
     {
         switch (event.type)
         {
+        case SDL_MOUSEBUTTONDOWN:
         case SDL_QUIT:
-            delete this;
-            break;
         case SDL_KEYDOWN:
             delete this;
             break;

@@ -35,6 +35,7 @@ Sprite::Sprite(Graph* g,
     , frameNum(0)
     , lastFrameChangeTime(currentTime)
     , currentAnimName(initialAnim)
+    , noRepeat(false)
 {
     auto anim = animations->find(initialAnim);
     if (anim != animations->cend())
@@ -62,23 +63,29 @@ bool Sprite::Update(size_t newTime)
 {
     if (newTime > lastFrameChangeTime + currentAnim->frameTime)
     {
-        frameNum++;
-        if (frameNum >= currentAnim->frameAmount)
+        lastFrameChangeTime = newTime;
+        if (frameNum >= currentAnim->frameAmount - 1)
         {
-            frameNum = 0;
+            if (noRepeat == false)
+            {
+                frameNum = 0;
+            }
             return true; //animation ended
         }
-
-        lastFrameChangeTime = newTime;
+        else
+        {
+            frameNum++;
+        }
     }
     return false;
 }
 
-bool Sprite::SwitchAnim(const std::string& newAnim)
+bool Sprite::SwitchAnim(const std::string& newAnim, bool noRepeat)
 {
     auto anim = animations->find(newAnim);
     if (anim != animations->cend())
     {
+        this->noRepeat = noRepeat;
         frameNum = 0;
         currentAnimName = newAnim;
         currentAnim = &anim->second;

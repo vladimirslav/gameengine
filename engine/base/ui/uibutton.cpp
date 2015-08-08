@@ -33,6 +33,7 @@ UiButton::UiButton(int x,
     , bg(bg)
     , stretchBg(stretchBg)
     , flip(flip)
+    , colorFilter({255, 255, 255, 255})
 {
 
 }
@@ -42,6 +43,7 @@ void UiButton::Draw()
     StartDraw();
     if (hasBg)
     {
+        g->PushTextureColorValues(colorFilter.r, colorFilter.g, colorFilter.b);
         if (stretchBg)
         {
             g->DrawTextureStretched(x, y, width, height, g->GetTexture(bg));
@@ -50,10 +52,25 @@ void UiButton::Draw()
         {
             g->DrawTexture(x, y, bg, nullptr, 0, flip);
         }
+        g->PopTextureColorValue();
     }
     else
     {
         UiLabel::Draw();
     }
     EndDraw();
+}
+
+void UiButton::SetColorFilter(const SDL_Color& rgb)
+{
+    colorFilter.r = rgb.r;
+    colorFilter.g = rgb.g;
+    colorFilter.b = rgb.b;
+}
+
+void UiButton::RestoreColorFilter()
+{
+    colorFilter.r = 255;
+    colorFilter.g = 255;
+    colorFilter.b = 255;
 }

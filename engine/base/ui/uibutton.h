@@ -10,6 +10,7 @@ protected:
     bool stretchBg;
     sprite_id bg;
     SDL_RendererFlip flip;
+    SDL_Color colorFilter;
 public:
     UiButton(int x,
              int y,
@@ -36,6 +37,9 @@ public:
              SDL_RendererFlip flip);
 
     virtual void Draw();
+
+    virtual void SetColorFilter(const SDL_Color& rgb);
+    virtual void RestoreColorFilter();
 };
 
 #endif

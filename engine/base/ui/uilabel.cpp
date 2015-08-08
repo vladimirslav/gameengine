@@ -20,7 +20,14 @@ void UiLabel::Draw()
 {
     if (text.empty() == false)
     {
-        g->WriteNormal(*mainfont, text, x, y, color);
+        g->WriteParagraph(*mainfont,
+            text,
+            x,
+            y,
+            width - 10,
+            10,
+            color);
+        //g->WriteNormal(*mainfont, text, x, y, color);
     }
 }
 

@@ -61,6 +61,7 @@ Graph::Graph(int _w, int _h, const std::string& caption)
     SDL_assert_release(renderer != NULL);
     
     alphaValues.push(255);
+    textureColorValues.push(SDL_Color{ 255, 255, 255, 255 });
 
     cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
     SDL_SetCursor(cursor);
@@ -243,6 +244,11 @@ void Graph::DrawTexture(int x, int y, SDL_Texture* texture)
     SDL_Rect dest;
     dest.x = x;
     dest.y = y;
+
+    SDL_assert_release(SDL_SetTextureColorMod(texture, 
+                                              textureColorValues.top().r,
+                                              textureColorValues.top().g,
+                                              textureColorValues.top().b) == 0);
     SDL_assert_release(SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h) == 0);
     SDL_assert_release(SDL_SetTextureAlphaMod(texture, alphaValues.top()) == 0);
     SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, &dest) == 0);
@@ -257,6 +263,10 @@ void Graph::DrawTexture(int x, int y, sprite_id texture)
 
 void Graph::DrawTextureStretched(SDL_Texture* texture)
 {
+    SDL_assert_release(SDL_SetTextureColorMod(texture,
+        textureColorValues.top().r,
+        textureColorValues.top().g,
+        textureColorValues.top().b) == 0);
     SDL_assert_release(SDL_SetTextureAlphaMod(texture, alphaValues.top()) == 0);
     SDL_assert_release(SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND) == 0);
     SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, NULL) == 0);
@@ -270,6 +280,10 @@ void Graph::DrawTextureStretched(int x, int y, int w, int h, SDL_Texture* textur
     dest.w = w;
     dest.h = h;
     SDL_assert_release(SDL_SetTextureAlphaMod(texture, alphaValues.top()) == 0);
+    SDL_assert_release(SDL_SetTextureColorMod(texture,
+        textureColorValues.top().r,
+        textureColorValues.top().g,
+        textureColorValues.top().b) == 0);
     SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, &dest) == 0);
 }
 
@@ -288,6 +302,10 @@ void Graph::DrawTexture(int x, int y, SDL_Texture* texture, const SDL_Rect* texP
         SDL_assert_release(SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h) == 0);
     }
 
+    SDL_assert_release(SDL_SetTextureColorMod(texture,
+        textureColorValues.top().r,
+        textureColorValues.top().g,
+        textureColorValues.top().b) == 0);
     SDL_assert_release(SDL_SetTextureAlphaMod(texture, alphaValues.top()) == 0);
     SDL_assert_release(SDL_RenderCopyEx(renderer, texture, texPart, &dest, angle, NULL, flip) == 0);
 }
@@ -296,6 +314,10 @@ void Graph::DrawTexture(const SDL_Rect* destRect, sprite_id texture, const SDL_R
 {
     SDL_Texture* tex = GetTexture(texture);
     SDL_assert_release(tex);
+    SDL_assert_release(SDL_SetTextureColorMod(tex,
+        textureColorValues.top().r,
+        textureColorValues.top().g,
+        textureColorValues.top().b) == 0);
     SDL_assert_release(SDL_SetTextureAlphaMod(tex, alphaValues.top()) == 0);
     SDL_assert_release(SDL_RenderCopyEx(renderer, tex, texPart, destRect, angle, NULL, flip) == 0);
 }
@@ -495,6 +517,17 @@ void Graph::PopAlpha()
 {
     alphaValues.pop();
 }
+
+void Graph::PushTextureColorValues(Uint8 r, Uint8 g, Uint8 b)
+{
+    textureColorValues.push(SDL_Color{ r, g, b, 0 });
+}
+
+void Graph::PopTextureColorValue()
+{
+    textureColorValues.pop();
+}
+
 
 void Graph::HideCursor()
 {
