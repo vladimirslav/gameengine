@@ -258,7 +258,7 @@ namespace EngineWindow
     {
         switch (event.type)
         {
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
         case SDL_QUIT:
         case SDL_KEYDOWN:
             delete this;

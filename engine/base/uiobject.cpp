@@ -28,6 +28,8 @@ UiObject::UiObject(int x,
     , isHidden(false)
     , customId(-1)
     , onClick(nullptr)
+    , onTooltip(nullptr)
+    , tooltip()
 {
 }
 
@@ -148,6 +150,11 @@ void UiObject::EndDraw()
             }
             fadeState = FadeState::NO_FADE;
         }
+    }
+
+    if (onTooltip != nullptr && mouseOver)
+    {
+        onTooltip(tooltip);
     }
 }
 
@@ -278,4 +285,10 @@ bool UiObject::Click()
 void UiObject::Receive(EventHandling::Event& e)
 {
 
+}
+
+void UiObject::SetTooltipCallback(tooltipCallback tCallback, const char* tooltip)
+{
+    onTooltip = tCallback;
+    this->tooltip = tooltip;
 }

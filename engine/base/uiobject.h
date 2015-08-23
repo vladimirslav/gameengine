@@ -22,7 +22,8 @@ enum class FadeState
 	FADE_OUT
 };
 
-typedef void (*callback)();
+using callback = void (*)();
+using tooltipCallback = void (*)(const std::string&); // int x, int y, string text
 
 class UiObject : public EventHandling::EventHandler
 {
@@ -35,6 +36,7 @@ protected:
 	Graph* g;
 	SDL_Color color;
 	SDL_Color borderColor;
+    std::string tooltip;
 
 	size_t borderWidth;
 
@@ -58,6 +60,7 @@ protected:
     int customId;
 
     callback onClick;
+    tooltipCallback onTooltip;
 
 public:
 	UiObject(int x,
@@ -105,6 +108,8 @@ public:
 
     virtual void SetCallback(callback clickCallback);
     virtual bool Click();
+
+    virtual void SetTooltipCallback(tooltipCallback tCallback, const char* tooltip);
 
     virtual void Receive(EventHandling::Event& e);
 
