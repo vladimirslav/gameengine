@@ -218,6 +218,22 @@ void EngineParticles::Clear()
     particles.clear();
 }
 
+FadingTextParticle::FadingTextParticle(int _x, int _y, int _life, int _time, const FontDescriptor* fontId, std::string& text, SDL_Color color)
+    : Particle(0, _x, _y, _life, _time)
+    , font(fontId)
+    , text(text)
+    , color(color)
+    , t(_life)
+{
+
+}
+
+void FadingTextParticle::Draw(Graph* gui)
+{
+    color.a = static_cast<Uint8>(255 * t.RemainingPart());
+    gui->WriteNormal(*font, text, x, y, color);
+}
+
 FadingOutPointerParticle::FadingOutPointerParticle(sprite_id _texture, int _x, int _y, int _life, int _time, int maxDx, int maxDy)
     : Particle(_texture, _x, _y, _life, _time)
     , t(_life)

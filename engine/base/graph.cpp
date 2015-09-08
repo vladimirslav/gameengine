@@ -195,10 +195,15 @@ void Graph::WriteText(TTF_Font* f, const std::string& str, int x, int y, const S
     SDL_assert_release(message != NULL);
     SDL_Texture* preparedMsg = SDL_CreateTextureFromSurface(renderer, message);
     SDL_assert_release(preparedMsg != NULL);
+    if (color.a != 255)
+    {
+        SDL_assert_release(SDL_SetTextureAlphaMod(preparedMsg, color.a) == 0);
+    }
     SDL_Rect dstrect;
     dstrect.x = x;
     dstrect.y = y;
-    SDL_assert_release(SDL_QueryTexture(preparedMsg, NULL, NULL, &dstrect.w, &dstrect.h) == 0);
+    Uint32 format = SDL_PIXELFORMAT_RGBA8888;
+    SDL_assert_release(SDL_QueryTexture(preparedMsg, &format, NULL, &dstrect.w, &dstrect.h) == 0);
     SDL_assert_release(SDL_RenderCopy(renderer, preparedMsg, NULL, &dstrect) == 0);
     SDL_FreeSurface(message);
     SDL_DestroyTexture(preparedMsg);

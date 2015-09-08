@@ -115,6 +115,18 @@ namespace EngineParticles
         virtual void Draw(Graph* gui);
     };
 
+    class FadingTextParticle : public EngineParticles::Particle
+    {
+    protected:
+        EngineTimer::CountdownTimer t;
+        const FontDescriptor* font;
+        std::string text;
+        SDL_Color color;
+    public:
+        FadingTextParticle(int _x, int _y, int _life, int _time, const FontDescriptor* fontId, std::string& text, SDL_Color color);
+        virtual void Draw(Graph* gui);
+    };
+
     class FadingOutPointerParticle : public EngineParticles::Particle
     {
     protected:
