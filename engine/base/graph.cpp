@@ -191,6 +191,11 @@ const int &Graph::GetHeight() const
  */
 void Graph::WriteText(TTF_Font* f, const std::string& str, int x, int y, const SDL_Color& color)
 {
+    if (str.empty())
+    {
+        return;
+    }
+
     SDL_Surface* message = TTF_RenderText_Blended(f, str.c_str(), color);
     SDL_assert_release(message != NULL);
     SDL_Texture* preparedMsg = SDL_CreateTextureFromSurface(renderer, message);
@@ -394,7 +399,6 @@ sprite_id Graph::LoadTexture(std::string filename)
 
 sprite_id Graph::LoadTextureAlphaPink(std::string filename)
 {
-
     if (preloadedSprites.count(filename) != 0)
     {
         return preloadedSprites.at(filename);

@@ -107,18 +107,21 @@ namespace EngineWindow
         }
         case SDL_MOUSEBUTTONUP:
         {
-            for (size_t i = 0; i < objectList.size(); i++)
+            if (event.button.button == SDL_BUTTON_LEFT)
             {
-                if (objectList[i]->IsClicked())
+                for (size_t i = 0; i < objectList.size(); i++)
                 {
-                    if (objectList[i]->Click() == false)
+                    if (objectList[i]->IsClicked())
                     {
-                        SDL_Event sdlevent;
-                        sdlevent.type = SDL_KEYDOWN;
-                        sdlevent.key.keysym.sym = SDLK_RETURN;
-                        SDL_PushEvent(&sdlevent);
+                        if (objectList[i]->Click() == false)
+                        {
+                            SDL_Event sdlevent;
+                            sdlevent.type = SDL_KEYDOWN;
+                            sdlevent.key.keysym.sym = SDLK_RETURN;
+                            SDL_PushEvent(&sdlevent);
+                        }
+                        break;
                     }
-                    break;
                 }
             }
             break;
@@ -329,11 +332,29 @@ namespace EngineWindow
     void ConfirmationWindow::OnOK()
     {
         lastChoice = ConfirmationChoice::YES;
+        if (yesEvent != nullptr)
+        {
+            EventHandling::SendEvent(*yesEvent);
+        }
     }
 
     void ConfirmationWindow::OnCancel()
     {
         lastChoice = ConfirmationChoice::NO;
+        if (noEvent != nullptr)
+        {
+            EventHandling::SendEvent(*noEvent);
+        }
+    }
+
+    void ConfirmationWindow::SetYesEvent(EventHandling::Event* ev)
+    {
+        yesEvent = ev;
+    }
+
+    void ConfirmationWindow::SetNoEvent(EventHandling::Event* ev)
+    {
+        noEvent = ev;
     }
 
     bool UpdateWindow(const SDL_Event& event)

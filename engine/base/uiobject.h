@@ -22,7 +22,7 @@ enum class FadeState
 	FADE_OUT
 };
 
-using callback = void (*)();
+using callback = void (*)(void*);
 using tooltipCallback = void (*)(const std::string&); // int x, int y, string text
 
 class UiObject : public EventHandling::EventHandler
@@ -60,6 +60,7 @@ protected:
     int customId;
 
     callback onClick;
+    void* callbackParams;
     tooltipCallback onTooltip;
 
 public:
@@ -107,12 +108,14 @@ public:
     virtual void Hide();
 
     virtual void SetCallback(callback clickCallback);
+    virtual void SetCallback(callback clickCallback, void* callbackParams);
     virtual bool Click();
 
     virtual void SetTooltipCallback(tooltipCallback tCallback, const char* tooltip);
 
     virtual void Receive(EventHandling::Event& e);
 
+    const FontDescriptor* GetMainFont() const;
 };
 
 #endif

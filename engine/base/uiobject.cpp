@@ -30,6 +30,7 @@ UiObject::UiObject(int x,
     , onClick(nullptr)
     , onTooltip(nullptr)
     , tooltip()
+    , callbackParams(nullptr)
 {
 }
 
@@ -148,7 +149,12 @@ void UiObject::EndDraw()
             {
                 OnFadeOut();
             }
-            fadeState = FadeState::NO_FADE;
+
+            // In case we set restarted fade countdown in one of the above functions
+            if (fadeCountdown.IsActive() == false)
+            {
+                fadeState = FadeState::NO_FADE;
+            }
         }
     }
 
@@ -268,6 +274,13 @@ void UiObject::Hide()
 void UiObject::SetCallback(callback clickCallback)
 {
     onClick = clickCallback;
+    callbackParams = nullptr;
+}
+
+void UiObject::SetCallback(callback clickCallback, void* callbackParams)
+{
+    onClick = clickCallback;
+    this->callbackParams = callbackParams;
 }
 
 bool UiObject::Click()
@@ -275,7 +288,7 @@ bool UiObject::Click()
     FadeIn(FadeMode::FADE_TO_BG, 0, 500);
     if (onClick != nullptr)
     {
-        onClick();
+        onClick(callbackParams);
         return true;
     }
 
@@ -291,4 +304,9 @@ void UiObject::SetTooltipCallback(tooltipCallback tCallback, const char* tooltip
 {
     onTooltip = tCallback;
     this->tooltip = tooltip;
+}
+
+const FontDescriptor* UiObject::GetMainFont() const
+{
+    return mainfont;
 }

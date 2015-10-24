@@ -25,6 +25,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include "sound.h"
 #include "uiobject.h"
+#include "eventhandler.h"
 
 namespace EngineWindow
 {
@@ -140,6 +141,10 @@ namespace EngineWindow
 
         virtual void OnOK();
         virtual void OnCancel();
+
+        EventHandling::Event* yesEvent;
+        EventHandling::Event* noEvent;
+
     public:
 
         ConfirmationWindow(int x,
@@ -155,6 +160,8 @@ namespace EngineWindow
 
         virtual void Draw();
         virtual void Update(const SDL_Event& event);
+        virtual void SetYesEvent(EventHandling::Event* ev);
+        virtual void SetNoEvent(EventHandling::Event* ev);
     };
 
     bool HasOpenWindows();
