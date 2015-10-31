@@ -41,6 +41,11 @@ namespace GameInventory
             maxSize = newSize;
         }
 
+        size_t GetMaxSize()
+        {
+            return items.size();
+        }
+
         // return false if inventory is full
         bool Add(T newItem) 
         {
@@ -55,9 +60,10 @@ namespace GameInventory
 
         bool GetItem(int index, T** targetItem)
         {
-            if (index < items.size())
+            if (index < (int)items.size())
             {
                 *targetItem = &items[index];
+                return true;
             }
 
             *targetItem = NULL;
