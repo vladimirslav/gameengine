@@ -25,6 +25,7 @@
     <ClInclude Include="..\..\engine\base\gamescreen.h" />
     <ClInclude Include="..\..\engine\base\graph.h" />
     <ClInclude Include="..\..\engine\base\input.h" />
+    <ClInclude Include="..\..\engine\base\inventory.h" />
     <ClInclude Include="..\..\engine\base\particles.h" />
     <ClInclude Include="..\..\engine\base\pathfinding.h" />
     <ClInclude Include="..\..\engine\base\routines.h" />
