@@ -78,6 +78,12 @@ public:
     void SetX(int nx);
     void SetY(int ny);
 
+    int GetX() const;
+    int GetY() const;
+
+    size_t GetWidth() const;
+    size_t GetHeight() const;
+
 	// Leave sprite as zero if FADE_TO_BG selected
     virtual void FadeIn(FadeMode mode, sprite_id fadeInSprite, size_t fadeInTime);
 	virtual void OnFadeIn();

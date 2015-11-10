@@ -203,6 +203,26 @@ void UiObject::SetY(int ny)
     y = ny;
 }
 
+int UiObject::GetX() const
+{
+    return x;
+}
+
+int UiObject::GetY() const
+{
+    return y;
+}
+
+size_t UiObject::GetWidth() const
+{
+    return width;
+}
+
+size_t UiObject::GetHeight() const
+{
+    return height;
+}
+
 void UiObject::AddObject(UiObject *button)
 {
     objectList.push_back(button);

@@ -73,9 +73,9 @@ namespace GameInventory
         // return 
         bool Remove(int index)
         {
-            if (index < items.size())
+            if (index < (int)items.size())
             {
-                items.erase(items.beg() + index);
+                items.erase(items.begin() + index);
                 return true;
             }
             return false;
