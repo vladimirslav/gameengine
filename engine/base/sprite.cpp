@@ -77,7 +77,8 @@ bool Sprite::Update(size_t newTime)
             frameNum++;
         }
     }
-    return false;
+
+    return frameNum >= currentAnim->frameAmount - 1;
 }
 
 bool Sprite::SwitchAnim(const std::string& newAnim, bool noRepeat)
