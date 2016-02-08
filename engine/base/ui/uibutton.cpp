@@ -6,11 +6,12 @@ UiButton::UiButton(int x,
                    size_t h,
                    Graph& g,
                    SDL_Color color,
+				   SDL_Color mouseOverColor,
                    SDL_Color borderColor,
                    size_t borderWidth,
                    const FontDescriptor* fontId,
                    std::string text)
-    : UiLabel(x, y, w, h, g, color, borderColor, borderWidth, fontId, text)
+	: UiLabel(x, y, w, h, g, color, mouseOverColor, borderColor, borderWidth, fontId, text)
     , hasBg(false)
     , stretchBg(false)
     , flip(SDL_FLIP_NONE)
@@ -28,7 +29,7 @@ UiButton::UiButton(int x,
                    sprite_id bg,
                    bool stretchBg,
                    SDL_RendererFlip flip)
-    : UiLabel(x, y, w, h, g, color, borderColor, borderWidth, 0, "")
+	: UiLabel(x, y, w, h, g, color, {}, borderColor, borderWidth, 0, "")
     , hasBg(true)
     , bg(bg)
     , stretchBg(stretchBg)

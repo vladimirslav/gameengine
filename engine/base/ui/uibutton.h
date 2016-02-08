@@ -18,6 +18,7 @@ public:
              size_t h,
              Graph& g,
              SDL_Color color,
+			 SDL_Color mouseOverColor,
              SDL_Color borderColor,
              size_t borderWidth,
              const FontDescriptor* fontId,
