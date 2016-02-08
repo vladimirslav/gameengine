@@ -38,8 +38,10 @@ namespace EngineSound
     void EnableSound();
     void DisableSound();
 
-    void PlaySound(sound_id s_id);
+    void PlaySound(sound_id s_id, int loop = 0);
     void PlayMusic(sound_id m_id);
+
+	void StopSounds();
 
     void SetMusicVolume(size_t percent);
     void SetSoundVolume(size_t percent);

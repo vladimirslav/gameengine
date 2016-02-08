@@ -40,7 +40,7 @@ static int currentSoundVolume = MIX_MAX_VOLUME;
 void EngineSound::InitAudio()
 {
     ClearAudio();
-    SDL_assert_release(Mix_OpenAudio(48000, MIX_DEFAULT_FORMAT, 2, 4096) == 0);
+    SDL_assert_release(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) == 0);
     //Mix_AllocateChannels(8);
 }
 
@@ -64,6 +64,7 @@ sound_id EngineSound::LoadSound(std::string sound_file)
     Mix_Chunk* result = Mix_LoadWAV(sound_file.c_str());
     SDL_assert_release(result != NULL);
     sounds.push_back(result);
+	preloadedSounds[sound_file] = sounds.size() - 1;
     return sounds.size() - 1;
 }
 
@@ -77,6 +78,7 @@ sound_id EngineSound::LoadMusic(std::string music_file)
     Mix_Music* result = Mix_LoadMUS(music_file.c_str());
     SDL_assert_release(result != NULL);
     music.push_back(result);
+	preloadedMusic[music_file] = music.size() - 1;
     return music.size() - 1;
 }
 
@@ -114,11 +116,11 @@ void EngineSound::PlayMusic(sound_id m_id)
     }
 }
 
-void EngineSound::PlaySound(sound_id s_id)
+void EngineSound::PlaySound(sound_id s_id, int loop)
 {
     if (sounds.size() > s_id && soundEnabled)
     {
-        Mix_PlayChannel(-1, sounds[s_id], 0);
+        Mix_PlayChannel(-1, sounds[s_id], loop);
     }
 }
 
@@ -146,4 +148,9 @@ void EngineSound::SetSoundVolume(size_t percent)
 {
     currentSoundVolume = static_cast<int>(MIX_MAX_VOLUME * static_cast<double>(percent) / 100);
     Mix_Volume(-1, currentSoundVolume);
+}
+
+void EngineSound::StopSounds()
+{
+	Mix_HaltChannel(-1);
 }
