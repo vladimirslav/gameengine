@@ -37,15 +37,18 @@ static const std::string SHAKE_TIMER = "shakeTimerScreen";
  * @param fontFile - file with TTF font to be used
  * @param caption - window caption
 */
-Graph::Graph(int _w, int _h, const std::string& caption)
+Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& caption)
     : w(_w)
     , h(_h)
+	, screenW(_screen_w)
+	, screenH(_screen_h)
 	, shakeDeltaX(0)
 	, shakeDeltaY(0)
     , renderer(NULL)
     ,  BLACK(SDL_Color{ 0, 0, 0, 0 })
     , cursor(nullptr)
     , currentCursorType(CursorType::ARROW)
+	, isFullScreen(false)
 {
     SDL_SetAssertionHandler(EngineRoutines::handler, NULL);
 
@@ -54,12 +57,17 @@ Graph::Graph(int _w, int _h, const std::string& caption)
 
     SDL_assert_release(SDL_GetDesktopDisplayMode(0, &displayMode) == 0);
 
-    screen = SDL_CreateWindow(caption.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, _w, _h, SDL_WINDOW_SHOWN);
+    screen = SDL_CreateWindow(caption.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenW, screenH, SDL_WINDOW_SHOWN);
     SDL_assert_release(screen != NULL);
 
     renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_assert_release(renderer != NULL);
     
+	if (_w != _screen_w || _h != _screen_h)
+	{
+		SDL_assert_release(SDL_RenderSetScale(renderer, _screen_w / (float)_w, _screen_h / (float)_h) == 0);
+	}
+
     alphaValues.push(255);
     textureColorValues.push(SDL_Color{ 255, 255, 255, 255 });
 
@@ -428,7 +436,21 @@ sprite_id Graph::LoadTextureAlphaPink(std::string filename)
 
 void Graph::ToggleFullscreen()
 {
-    SDL_assert_release(SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN_DESKTOP) == 0);
+	if (isFullScreen)
+	{
+		isFullScreen = false;
+		SDL_assert_release(SDL_SetWindowFullscreen(screen, 0) == 0);
+	}
+	else
+	{
+		isFullScreen = true;
+		SDL_assert_release(SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN) == 0);
+	}
+}
+
+bool Graph::IsInFullScreen() const
+{
+	return isFullScreen;
 }
 
 void Graph::FreeTextures()

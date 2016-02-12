@@ -61,6 +61,9 @@ private:
     int w;
     int h;
 
+	int screenW;
+	int screenH;
+
     SDL_Window* screen;
     SDL_DisplayMode displayMode;
 
@@ -82,16 +85,17 @@ private:
 
     SDL_Cursor* cursor;
     CursorType currentCursorType;
-
+	bool isFullScreen;
 public:
     const SDL_Color BLACK;
 
-    Graph(int w, int h, const std::string& caption);
+    Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& caption);
     ~Graph();
     const int &GetWidth() const;
     const int &GetHeight() const;
 
     void ToggleFullscreen();
+	bool IsInFullScreen() const;
 
     void SetIcon(const std::string& icon_name);
     void SetBgColor(SDL_Color color);

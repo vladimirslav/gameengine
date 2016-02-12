@@ -59,6 +59,7 @@ void GameScreen::ProcessEvent(SDL_Event& event)
 void GameScreen::StartDraw()
 {
     g->ClrScr();
+	g->SetViewPort(0, 0, 1024, 768);
     GameWindow::StartDraw();
 }
 
