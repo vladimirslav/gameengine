@@ -39,6 +39,7 @@ static int currentSoundVolume = MIX_MAX_VOLUME;
 
 void EngineSound::InitAudio()
 {
+	SDL_Log(__FUNCTION__);
     ClearAudio();
     SDL_assert_release(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) == 0);
     //Mix_AllocateChannels(8);
@@ -46,16 +47,20 @@ void EngineSound::InitAudio()
 
 void EngineSound::EnableSound()
 {
+	SDL_Log(__FUNCTION__);
     soundEnabled = true;
 }
 
 void EngineSound::DisableSound()
 {
+	SDL_Log(__FUNCTION__);
     soundEnabled = false;
 }
 
 sound_id EngineSound::LoadSound(std::string sound_file)
 {
+	SDL_Log(__FUNCTION__);
+	SDL_Log(std::string("Loading " + sound_file).c_str());
     if (preloadedSounds.count(sound_file) != 0)
     {
         return preloadedSounds.at(sound_file);
@@ -70,6 +75,7 @@ sound_id EngineSound::LoadSound(std::string sound_file)
 
 sound_id EngineSound::LoadMusic(std::string music_file)
 {
+	SDL_Log(std::string("Loading " + music_file).c_str());
     if (preloadedMusic.count(music_file) != 0)
     {
         return preloadedMusic.at(music_file);
@@ -84,12 +90,32 @@ sound_id EngineSound::LoadMusic(std::string music_file)
 
 void EngineSound::StopMusic()
 {
-    Mix_PausedMusic();
+	SDL_Log(__FUNCTION__);
+	PauseMusic();
     Mix_HaltMusic();
+}
+
+void EngineSound::PauseMusic()
+{
+	if (Mix_PlayingMusic() != 0)
+	{
+		Mix_PauseMusic();
+	}
+}
+
+void EngineSound::ResumeMusic()
+{
+	if (Mix_PausedMusic() == 1)
+	{
+		Mix_ResumeMusic();
+	}
 }
 
 void EngineSound::ClearAudio()
 {
+	SDL_Log(__FUNCTION__);
+	StopSounds();
+	StopMusic();
     for (auto sound : sounds)
     {
         Mix_FreeChunk(sound);
@@ -109,6 +135,7 @@ void EngineSound::ClearAudio()
 
 void EngineSound::PlayMusic(sound_id m_id)
 {
+	SDL_Log(__FUNCTION__);
     if (music.size() > m_id)
     {
         SDL_assert_release(Mix_PlayMusic(music[m_id], -1) == 0);
@@ -118,6 +145,7 @@ void EngineSound::PlayMusic(sound_id m_id)
 
 void EngineSound::PlaySound(sound_id s_id, int loop)
 {
+	SDL_Log(__FUNCTION__);
     if (sounds.size() > s_id && soundEnabled)
     {
         Mix_PlayChannel(-1, sounds[s_id], loop);
@@ -126,11 +154,13 @@ void EngineSound::PlaySound(sound_id s_id, int loop)
 
 void EngineSound::FadeOutMusic(int ms)
 {
+	SDL_Log(__FUNCTION__);
     Mix_FadeOutMusic(ms);
 }
 
 void EngineSound::FadeInMusic(sound_id m_id, int ms)
 {
+	SDL_Log(__FUNCTION__);
     if (music.size() > m_id)
     {
         SDL_assert_release(Mix_FadeInMusic(music[m_id], -1, ms) == 0);
@@ -140,17 +170,21 @@ void EngineSound::FadeInMusic(sound_id m_id, int ms)
 
 void EngineSound::SetMusicVolume(size_t percent)
 {
+	SDL_Log(__FUNCTION__);
     currentMusicVolume = static_cast<int>(MIX_MAX_VOLUME * static_cast<double>(percent) / 100);
     Mix_VolumeMusic(currentMusicVolume);
 }
 
 void EngineSound::SetSoundVolume(size_t percent)
 {
+	SDL_Log(__FUNCTION__);
     currentSoundVolume = static_cast<int>(MIX_MAX_VOLUME * static_cast<double>(percent) / 100);
     Mix_Volume(-1, currentSoundVolume);
+	SDL_Log(__FUNCTION__);
 }
 
 void EngineSound::StopSounds()
 {
+	SDL_Log(__FUNCTION__);
 	Mix_HaltChannel(-1);
 }

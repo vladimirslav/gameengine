@@ -8,6 +8,7 @@ extern const SDL_Color UI_COLOR_WHITE;
 extern const SDL_Color UI_COLOR_BLACK;
 extern const SDL_Color UI_COLOR_RED;
 extern const SDL_Color UI_COLOR_GREEN;
+extern const SDL_Color UI_COLOR_DARK_GREEN;
 
 class UiLabel : public UiObject
 {
