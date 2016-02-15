@@ -8,6 +8,7 @@ extern const SDL_Color UI_COLOR_WHITE;
 extern const SDL_Color UI_COLOR_BLACK;
 extern const SDL_Color UI_COLOR_RED;
 extern const SDL_Color UI_COLOR_GREEN;
+extern const SDL_Color UI_COLOR_BLUE;
 extern const SDL_Color UI_COLOR_DARK_GREEN;
 
 class UiLabel : public UiObject
@@ -22,7 +23,7 @@ public:
             size_t h,
             Graph& g,
             SDL_Color color,
-			SDL_Color mouseOverColor,
+            SDL_Color mouseOverColor,
             SDL_Color borderColor,
             size_t borderWidth,
             const FontDescriptor* fontId,

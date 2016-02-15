@@ -116,17 +116,24 @@ void EngineSound::ClearAudio()
 	SDL_Log(__FUNCTION__);
 	StopSounds();
 	StopMusic();
-    for (auto sound : sounds)
-    {
-        Mix_FreeChunk(sound);
-    }
+	if (sounds.empty() == false)
+	{
+		for (auto sound : sounds)
+		{
+			Mix_FreeChunk(sound);
+		}
+	}
     sounds.clear();
+
     preloadedSounds.clear();
 
-    for (auto sound : music)
-    {
-        Mix_FreeMusic(sound);
-    }
+	if (music.empty() == false)
+	{
+		for (auto sound : music)
+		{
+			Mix_FreeMusic(sound);
+		}
+	}
     music.clear();
     preloadedMusic.clear();
     //Mix_AllocateChannels(0);

@@ -99,6 +99,7 @@ public:
     virtual void AddObject(UiObject *button, int x, int y, int customId);
     virtual void DrawObjects();
     virtual void ResetObjects();
+    virtual void ResetStates();
 
     virtual void Update(const SDL_Event& event);
     virtual bool HasMouseOver();

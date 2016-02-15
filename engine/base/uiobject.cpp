@@ -34,6 +34,12 @@ UiObject::UiObject(int x,
 {
 }
 
+void UiObject::ResetStates()
+{
+    mouseOver = false;
+    isClicked = false;
+}
+
 void UiObject::StartDraw()
 {
     if (fadeMode == FadeMode::FADE_TO_BG)
