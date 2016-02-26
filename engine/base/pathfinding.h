@@ -50,7 +50,7 @@ template <typename T> tile_list Astar(T*** field,
     // check if unit can actually fit in destination
     if (include_destination)
     {
-        for (int newX = xDest + 1; newX < xDest + unit_w; newX++)
+        for (int newX = xDest; newX < xDest + unit_w; newX++)
         {
             if (areValidCoordinates(newX, yDest, w, h) == false)
             {

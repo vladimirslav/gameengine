@@ -37,6 +37,10 @@ static bool soundEnabled = true;
 static int currentMusicVolume = MIX_MAX_VOLUME;
 static int currentSoundVolume = MIX_MAX_VOLUME;
 
+#ifndef _DEBUG
+#define SDL_Log (void*)
+#endif
+
 void EngineSound::InitAudio()
 {
 	SDL_Log(__FUNCTION__);

@@ -41,7 +41,7 @@ namespace EngineWindow
 		bool addToWindowStack)
 		: UiObject(x, y, w, h, g, color, borderColor, borderWidth, fontId)
         , index(-1)
-        , hasSound(false)
+		, prevIndex(-1)
         , activeObject(nullptr)
     {
 		particle_timer.Reset();
@@ -78,6 +78,7 @@ namespace EngineWindow
         {
         case SDL_MOUSEMOTION:
         {
+            index = -1;
             if (event.motion.x > x &&
                 event.motion.x < x + static_cast<int>(width) &&
                 event.motion.y > y &&
@@ -90,15 +91,13 @@ namespace EngineWindow
                     {
                         activeObject = objectList[i];
                         g->SwitchCursor(CursorType::POINTER);
-                        if (index != objectList[i]->getCustomId())
+                        index = objectList[i]->getCustomId();
+                        if (prevIndex != index)
                         {
-                            if (hasSound)
-                            {
-                                EngineSound::PlaySound(menuSound);
-                            }
-                            index = objectList[i]->getCustomId();
-                            objectList[i]->FadeIn(FadeMode::FADE_TO_BG, 0, 200);
+							EventHandling::SendEvent(EventHandling::Event{WINDOW_EVENT_MENU_MOVE, nullptr});
+                            prevIndex = index;
                         }
+                        objectList[i]->FadeIn(FadeMode::FADE_TO_BG, 0, 200);
                         break;
                     }
                 }

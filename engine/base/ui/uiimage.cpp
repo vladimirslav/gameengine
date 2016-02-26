@@ -47,3 +47,16 @@ void UiImage::Draw()
     UiObject::Draw();
     EndDraw();
 }
+
+UiAnimatedImage::UiAnimatedImage(int x, int y, size_t w, size_t h, Graph& g, size_t frames, size_t frameTime, const char* fName)
+    : UiImage(x, y, w, h, g, {}, 0, 0)
+    , anims({ { std::string("DEFAULT"), ANIM_INFO{ 0, frames, frameTime } } })
+    , img(&g, fName, DIRECTION_RIGHT, &anims, w, h, 0, "DEFAULT")
+{
+}
+
+void UiAnimatedImage::Draw()
+{
+    img.Update(spriteTimer.GetTicks());
+    img.Draw(g, x, y);
+}

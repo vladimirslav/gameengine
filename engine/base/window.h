@@ -29,6 +29,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 namespace EngineWindow
 {
+	enum WINDOW_EVENT
+	{
+		WINDOW_EVENT_MENU_MOVE = 10000,
+	};
+
     enum class ConfirmationChoice
     {
         YES,
@@ -41,8 +46,7 @@ namespace EngineWindow
     protected:
 		Timer particle_timer;
         int index;
-        bool hasSound;
-        EngineSound::sound_id menuSound;
+		int prevIndex;
         UiObject* activeObject;
     public:
         GameWindow(int x,
