@@ -103,6 +103,11 @@ void Graph::LoadFontToDesc(FontDescriptor* desc)
     desc->tableId = fonts.size() - 1;
     desc->isLoaded = true;
 
+    if (desc->outline != 0)
+    {
+        TTF_SetFontOutline(fnt, desc->outline);
+    }
+
     TTF_SizeText(fnt, "W", &desc->width, &desc->height);
 }
 
@@ -232,6 +237,21 @@ void Graph::WriteNormal(const FontDescriptor& fontHandler, const std::string& st
     WriteText(fonts[fontHandler.tableId], str, x, y, color);
 }
 
+void Graph::WriteBorderedText(const FontDescriptor& fontHandler, 
+    const std::string& str, 
+    int x, 
+    int y, 
+    const SDL_Color& color, 
+    const SDL_Color& borderColor)
+{
+    //TODO: no need to make 5 surfaces (like it is done in WriteText), move the code back here to optimize the speed
+    WriteText(fonts[fontHandler.tableId], str, x - 1, y, borderColor);
+    WriteText(fonts[fontHandler.tableId], str, x + 1, y, borderColor);
+    WriteText(fonts[fontHandler.tableId], str, x, y - 1, borderColor);
+    WriteText(fonts[fontHandler.tableId], str, x, y + 1, borderColor);
+    WriteText(fonts[fontHandler.tableId], str, x, y, color);
+}
+
 void Graph::WriteParagraph(const FontDescriptor& fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color)
 {
     if (str.empty())
@@ -240,6 +260,7 @@ void Graph::WriteParagraph(const FontDescriptor& fontHandler, const std::string&
     }
     SDL_Surface* message = TTF_RenderText_Blended_Wrapped(fonts[fontHandler.tableId], str.c_str(), color, maxW);
     SDL_assert_release(message != NULL);
+    lastWrittenParagraphH = message->h;
     SDL_Texture* preparedMsg = SDL_CreateTextureFromSurface(renderer, message);
     SDL_assert_release(preparedMsg != NULL);
     SDL_Rect dstrect;
@@ -250,6 +271,11 @@ void Graph::WriteParagraph(const FontDescriptor& fontHandler, const std::string&
     SDL_FreeSurface(message);
     SDL_DestroyTexture(preparedMsg);
     return;
+}
+
+int Graph::GetLastWrittenParagraphH() const
+{
+    return lastWrittenParagraphH;
 }
 
 void Graph::GetTextSize(const FontDescriptor& fontHandler, const std::string& str, int* w, int* h)
@@ -546,7 +572,17 @@ void Graph::PushAlpha(Uint8 new_alpha)
 
 void Graph::PopAlpha()
 {
-    alphaValues.pop();
+    // 255 always stays
+    if (alphaValues.size() > 1)
+    {
+        alphaValues.pop();
+    }
+}
+
+void Graph::ClearAlpha()
+{
+    alphaValues = std::stack<Uint8>();
+    alphaValues.push(255);
 }
 
 void Graph::PushTextureColorValues(Uint8 r, Uint8 g, Uint8 b)

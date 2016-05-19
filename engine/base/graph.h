@@ -42,6 +42,7 @@ struct FontDescriptor
 
     int width;
     int height;
+    int outline;
     bool isLoaded;
 };
 
@@ -86,6 +87,8 @@ private:
     SDL_Cursor* cursor;
     CursorType currentCursorType;
 	bool isFullScreen;
+
+    int lastWrittenParagraphH;
 public:
     const SDL_Color BLACK;
 
@@ -107,7 +110,17 @@ public:
     void GetTextSize(const FontDescriptor& fontHandler, const std::string& str, int* w, int* h);
     void WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y);
     void WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y, const SDL_Color& color);
+
+    void WriteBorderedText(const FontDescriptor& fontHandler,
+                           const std::string& str,
+                           int x,
+                           int y,
+                           const SDL_Color& color,
+                           const SDL_Color& borderColor);
+
     void WriteParagraph(const FontDescriptor& fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color);
+
+    int GetLastWrittenParagraphH() const;
 
     void FillRect(int x1, int y1, int x2, int y2, const SDL_Color& color);
     void DrawRect(int x, int y, size_t w, size_t h, const SDL_Color& color);
@@ -143,6 +156,7 @@ public:
 
     void PushAlpha(Uint8 new_alpha);
     void PopAlpha();
+    void ClearAlpha(); // clear all alpha values
 
     void PushTextureColorValues(Uint8 r, Uint8 g, Uint8 b);
     void PopTextureColorValue();

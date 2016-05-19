@@ -16,6 +16,7 @@ class UiLabel : public UiObject
 protected:
     std::string text;
 	SDL_Color mouseOverColor;
+    int actualTextH;
 public:
     UiLabel(int x,
             int y,
@@ -32,6 +33,7 @@ public:
     virtual void Draw();
 
     virtual void setText(std::string newText);
+    virtual int GetActualH();
 };
 
 #endif

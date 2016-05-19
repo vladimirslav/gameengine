@@ -21,31 +21,41 @@ UiLabel::UiLabel(int x,
     : UiObject(x, y, w, h, g, color, borderColor, borderWidth, fontId)
     , text(text)
     , mouseOverColor(mouseOverColor)
+    , actualTextH(0)
 {
 
 }
 
 void UiLabel::Draw()
 {
+    StartDraw();
     if (text.empty() == false)
     {
-		SDL_Color* chosenColor = &color;
-		if (mouseOver)
-		{
-			chosenColor = &mouseOverColor;
-		}
+        SDL_Color* chosenColor = &color;
+        if (mouseOver)
+        {
+            chosenColor = &mouseOverColor;
+        }
         g->WriteParagraph(*mainfont,
             text,
             x,
             y,
             width - 10,
             10,
-			*chosenColor);
+            *chosenColor);
+        actualTextH = g->GetLastWrittenParagraphH();
         //g->WriteNormal(*mainfont, text, x, y, color);
     }
+    UiObject::Draw();
+    EndDraw();
 }
 
 void UiLabel::setText(std::string newText)
 {
     text = newText;
+}
+
+int UiLabel::GetActualH()
+{
+    return actualTextH;
 }

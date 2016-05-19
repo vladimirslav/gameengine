@@ -57,6 +57,9 @@ UiAnimatedImage::UiAnimatedImage(int x, int y, size_t w, size_t h, Graph& g, siz
 
 void UiAnimatedImage::Draw()
 {
+    StartDraw();
     img.Update(spriteTimer.GetTicks());
     img.Draw(g, x, y);
+    UiObject::Draw();
+    EndDraw();
 }

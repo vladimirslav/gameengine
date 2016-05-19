@@ -59,6 +59,8 @@ namespace EngineWindow
         {
             windows.erase(addr);
         }
+
+        g->ClearAlpha();
     }
 
     void GameWindow::Draw()
@@ -252,8 +254,11 @@ namespace EngineWindow
 
     void BGNotificationWindow::Draw()
     {
+        StartDraw();
         g->DrawTextureStretched(x, y, width, height, g->GetTexture(bg));
+        GameWindow::Draw();
         g->WriteParagraph(*mainfont, message, x + fontBorder, y + height / 3, width - fontBorder * 2, fontBorder, textColor);
+        EndDraw();
     }
 
     void BGNotificationWindow::Update(const SDL_Event& event)
