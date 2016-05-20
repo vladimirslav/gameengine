@@ -143,7 +143,7 @@ namespace EngineWindow
 		}
 	}
 
-	int GameWindow::GetCurrentTime()
+	int GameWindow::GetCurrentGameTime()
 	{
 		return particle_timer.GetTicks();
 	}
@@ -255,7 +255,7 @@ namespace EngineWindow
     void BGNotificationWindow::Draw()
     {
         StartDraw();
-        g->DrawTextureStretched(x, y, width, height, g->GetTexture(bg));
+        g->DrawTextureStretched((GLfloat)x, (GLfloat)y, (GLfloat)width, (GLfloat)height, g->GetTexture(bg));
         GameWindow::Draw();
         g->WriteParagraph(*mainfont, message, x + fontBorder, y + height / 3, width - fontBorder * 2, fontBorder, textColor);
         EndDraw();

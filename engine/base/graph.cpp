@@ -22,6 +22,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include <vector>
 #include <string>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "thirdparty\stb_image.h"
+
+//#define GL_GLEXT_PROTOTYPES
+//#include <gl/GL.h>
+
 const SDL_Color F_WHITE = { 255, 255, 255, 255 };
 const SDL_Color F_RED = { 255, 0, 0, 0 };
 const SDL_Color F_BLACK = { 0, 0, 0, 0 };
@@ -49,6 +55,7 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
     , cursor(nullptr)
     , currentCursorType(CursorType::ARROW)
 	, isFullScreen(false)
+    , vertexAmount(0)
 {
     SDL_SetAssertionHandler(EngineRoutines::handler, NULL);
 
@@ -57,22 +64,134 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
 
     SDL_assert_release(SDL_GetDesktopDisplayMode(0, &displayMode) == 0);
 
-    screen = SDL_CreateWindow(caption.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenW, screenH, SDL_WINDOW_SHOWN);
+    screen = SDL_CreateWindow(caption.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenW, screenH, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
     SDL_assert_release(screen != NULL);
+
+    context = SDL_GL_CreateContext(screen);
+    SDL_assert_release(context != NULL);
 
     renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_assert_release(renderer != NULL);
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+
+    glewExperimental = true;
+    GLenum err = glewInit();
+    if (err != GLEW_OK)
+    {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+            "An error has occured",
+            (const char*)glewGetErrorString(err),
+            NULL);
+    }
     
 	if (_w != _screen_w || _h != _screen_h)
 	{
 		SDL_assert_release(SDL_RenderSetScale(renderer, _screen_w / (float)_w, _screen_h / (float)_h) == 0);
 	}
 
-    alphaValues.push(255);
+    alphaValues.push(1.0f);
     textureColorValues.push(SDL_Color{ 255, 255, 255, 255 });
 
     cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
     SDL_SetCursor(cursor);
+
+    shapeProgramId = LoadShaders("effects/baseshapev.glsl", "effects/baseshapef.glsl");
+    textureProgramId = LoadShaders("effects/texv.glsl", "effects/texf.glsl");
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glGenBuffers(1, &vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexBufferData), vertexBufferData, GL_DYNAMIC_DRAW);
+
+    glGenBuffers(1, &texVertBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, texVertBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(texVertBuffData), texVertBuffData, GL_DYNAMIC_DRAW);
+
+    PrepareScreen();
+}
+
+static const GLfloat g_vertex_buffer_data[] = {
+    -1.0f, -1.0f, 0.0f,
+    1.0f, -1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+};
+
+void Graph::PrepareScreen()
+{
+    static const GLfloat BASE_ORTHO[] = {
+        2.f, 0.f, 0.f, 0.f,
+        0.f, -2.f, 0.f, 0.f,
+        0.f, 0.f, 0.f, 0.f,
+        -1.f, 1.f, 0.f, 1.f,
+    };
+    memcpy(orthoProj, BASE_ORTHO, sizeof(BASE_ORTHO));
+    // see here: https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
+    orthoProj[0] /= w;
+    orthoProj[5] /= h;
+
+    glViewport(0, 0, w, h);
+}
+
+void Graph::FlushTextures(GLuint texId, SDL_RendererFlip flip)
+{
+    glEnable(GL_TEXTURE_2D);
+    glUseProgram(textureProgramId);
+
+    glUniformMatrix4fv(glGetUniformLocation(textureProgramId, "MVP"), 1, GL_FALSE, orthoProj);
+
+    glBindBuffer(GL_ARRAY_BUFFER, texVertBuffer);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, textureVertexAmount * sizeof(TexturedVertex), texVertBuffData);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(TexturedVertex),
+        (void*)0
+        );
+
+    glActiveTexture(texId);
+    glBindTexture(GL_TEXTURE_2D, texId);
+    // Set our "myTextureSampler" sampler to user Texture Unit 0
+    glUniform1i(texId, 0);
+
+    GLfloat flips[2];
+    flips[0] = (GLfloat)(flip & SDL_FLIP_HORIZONTAL) * (texVertBuffData[0].u + texVertBuffData[4].u);
+    flips[1] = (GLfloat)(flip & SDL_FLIP_VERTICAL) * (texVertBuffData[0].v + texVertBuffData[4].v);
+
+    glUniform2f(glGetUniformLocation(textureProgramId, "flip"), flips[0], flips[1]);
+
+    glUniform4f(glGetUniformLocation(textureProgramId, "colorMod"), 
+                textureColorValues.top().r / 255.0f,
+                textureColorValues.top().g / 255.0f,
+                textureColorValues.top().b / 255.0f,
+                alphaValues.top());
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(TexturedVertex),
+        (void*)((char*)&texVertBuffData[0].u - (char*)texVertBuffData)
+        );
+    
+    glDrawArrays(GL_TRIANGLES, 0, textureVertexAmount);
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+
+    textureVertexAmount = 0;
+    glDisable(GL_TEXTURE_2D);
+    glUseProgram(0);
+    //glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 Graph::~Graph()
@@ -84,6 +203,7 @@ Graph::~Graph()
 
     SDL_FreeCursor(cursor);
     SDL_DestroyRenderer(renderer);
+    SDL_GL_DeleteContext(context);
     SDL_DestroyWindow(screen);
 
     SDL_Quit();
@@ -151,8 +271,12 @@ void Graph::ClrScr()
 	SetViewPort(xdelta, ydelta, w + xdelta, h + ydelta);
     SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
     SDL_RenderClear(renderer);
-}
+    glClear(GL_COLOR_BUFFER_BIT);
 
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0f, w, h, 0.0f, 0.0f, 1.0f);
+}
 /*
  * Flip the buffer
 */
@@ -165,7 +289,7 @@ void Graph::Flip()
             ApplyFilter(0, 0, w, h, shakeColor);
         }
     }
-    SDL_RenderPresent(renderer);
+    SDL_GL_SwapWindow(screen);
 }
 
 /*
@@ -209,22 +333,34 @@ void Graph::WriteText(TTF_Font* f, const std::string& str, int x, int y, const S
         return;
     }
 
+    GLuint texture;
+    glEnable(GL_TEXTURE_2D);
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
     SDL_Surface* message = TTF_RenderText_Blended(f, str.c_str(), color);
     SDL_assert_release(message != NULL);
-    SDL_Texture* preparedMsg = SDL_CreateTextureFromSurface(renderer, message);
-    SDL_assert_release(preparedMsg != NULL);
-    if (color.a != 255)
-    {
-        SDL_assert_release(SDL_SetTextureAlphaMod(preparedMsg, color.a) == 0);
-    }
-    SDL_Rect dstrect;
-    dstrect.x = x;
-    dstrect.y = y;
-    Uint32 format = SDL_PIXELFORMAT_RGBA8888;
-    SDL_assert_release(SDL_QueryTexture(preparedMsg, &format, NULL, &dstrect.w, &dstrect.h) == 0);
-    SDL_assert_release(SDL_RenderCopy(renderer, preparedMsg, NULL, &dstrect) == 0);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, message->w, message->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, message->pixels);
+
+    texVertBuffData[0] = TexturedVertex((GLfloat)x, (GLfloat)y, 0.0f, 0.0f, 0.0f);
+    texVertBuffData[1] = TexturedVertex((GLfloat)x, (GLfloat)y + message->h, 0.0f, 0.0f, 1.0f);
+    texVertBuffData[2] = TexturedVertex((GLfloat)x + message->w, (GLfloat)y, 0.0f, 1.0f, 0.0f);
+
+    texVertBuffData[3] = texVertBuffData[1];
+    texVertBuffData[4] = TexturedVertex((GLfloat)x + message->w, (GLfloat)y + message->h, 0, 1.0f, 1.0f);
+    texVertBuffData[5] = texVertBuffData[2];
+
+    textureVertexAmount = 6;
+
+    glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    FlushTextures(texture, SDL_FLIP_NONE);
+    glDeleteTextures(1, &texture);
     SDL_FreeSurface(message);
-    SDL_DestroyTexture(preparedMsg);
 }
 
 void Graph::WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y)
@@ -261,6 +397,33 @@ void Graph::WriteParagraph(const FontDescriptor& fontHandler, const std::string&
     SDL_Surface* message = TTF_RenderText_Blended_Wrapped(fonts[fontHandler.tableId], str.c_str(), color, maxW);
     SDL_assert_release(message != NULL);
     lastWrittenParagraphH = message->h;
+
+    GLuint texture;
+    glEnable(GL_TEXTURE_2D);
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, message->w, message->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, message->pixels);
+
+    texVertBuffData[0] = TexturedVertex((GLfloat)x, (GLfloat)y, 0.0f, 0.0f, 0.0f);
+    texVertBuffData[1] = TexturedVertex((GLfloat)x, (GLfloat)y + message->h, 0.0f, 0.0f, 1.0f);
+    texVertBuffData[2] = TexturedVertex((GLfloat)x + message->w, (GLfloat)y, 0.0f, 1.0f, 0.0f);
+
+    texVertBuffData[3] = texVertBuffData[1];
+    texVertBuffData[4] = TexturedVertex((GLfloat)x + message->w, (GLfloat)y + message->h, 0, 1.0f, 1.0f);
+    texVertBuffData[5] = texVertBuffData[2];
+
+    textureVertexAmount = 6;
+
+    glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    FlushTextures(texture, SDL_FLIP_NONE);
+    glDeleteTextures(1, &texture);
+    SDL_FreeSurface(message);
+    /*
     SDL_Texture* preparedMsg = SDL_CreateTextureFromSurface(renderer, message);
     SDL_assert_release(preparedMsg != NULL);
     SDL_Rect dstrect;
@@ -270,6 +433,7 @@ void Graph::WriteParagraph(const FontDescriptor& fontHandler, const std::string&
     SDL_assert_release(SDL_RenderCopy(renderer, preparedMsg, NULL, &dstrect) == 0);
     SDL_FreeSurface(message);
     SDL_DestroyTexture(preparedMsg);
+    */ 
     return;
 }
 
@@ -283,12 +447,53 @@ void Graph::GetTextSize(const FontDescriptor& fontHandler, const std::string& st
     SDL_assert_release(TTF_SizeText(fonts[fontHandler.tableId], str.c_str(), w, h) == 0);
 }
 
-void Graph::DrawTexture(int x, int y, SDL_Texture* texture)
+void Graph::FlushBasicShape(const GraphColor& color, GLenum mode)
 {
+    glUseProgram(shapeProgramId);
+    glUniform4f(glGetUniformLocation(shapeProgramId, "colorval"), color.r, color.g, color.b, color.a);
+    glUniformMatrix4fv(glGetUniformLocation(shapeProgramId, "MVP"), 1, GL_FALSE, orthoProj);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertexAmount * sizeof(Vertex), vertexBufferData);
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(Vertex),
+        (void*)0
+        );
+
+    glDrawArrays(mode, 0, vertexAmount);
+
+    glDisableVertexAttribArray(0);
+    vertexAmount = 0;
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //glUseProgram(0);
+}
+
+void Graph::DrawTexture(GLfloat x, GLfloat y, TextureRecord* texture)
+{
+
+    texVertBuffData[0] = TexturedVertex(x, y, 0.0f, 0.0f, 0.0f);
+    texVertBuffData[1] = TexturedVertex(x, y + texture->h, 0.0f, 0.0f, 1.0f);
+    texVertBuffData[2] = TexturedVertex(x + texture->w, y, 0.0f, 1.0f, 0.0f);
+
+    texVertBuffData[3] = texVertBuffData[1];
+    texVertBuffData[4] = TexturedVertex(x + texture->w, y + texture->h, 0, 1.0f, 1.0f);
+    texVertBuffData[5] = texVertBuffData[2];
+    //glUniform4f(glGetUniformLocation(shapeProgramId, "colorval"), color.r, color.g, color.b, color.a);
+
+    textureVertexAmount = 6;
+
+    FlushTextures(texture->texId, SDL_FLIP_NONE);
+    /*
     SDL_Rect dest;
     dest.x = x;
     dest.y = y;
-
     SDL_assert_release(SDL_SetTextureColorMod(texture, 
                                               textureColorValues.top().r,
                                               textureColorValues.top().g,
@@ -296,17 +501,31 @@ void Graph::DrawTexture(int x, int y, SDL_Texture* texture)
     SDL_assert_release(SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h) == 0);
     SDL_assert_release(SDL_SetTextureAlphaMod(texture, alphaValues.top()) == 0);
     SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, &dest) == 0);
+    */
 }
 
-void Graph::DrawTexture(int x, int y, sprite_id texture)
+void Graph::DrawTexture(GLfloat x, GLfloat y, sprite_id texture)
 {
-    SDL_Texture* tex = GetTexture(texture);
+    TextureRecord* tex = GetTexture(texture);
     SDL_assert_release(tex);
     DrawTexture(x, y, tex);
 }
 
-void Graph::DrawTextureStretched(SDL_Texture* texture)
+void Graph::DrawTextureStretched(TextureRecord* texture)
 {
+    texVertBuffData[0] = TexturedVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    texVertBuffData[1] = TexturedVertex(0.0f, (GLfloat)h, 0.0f, 0.0f, 1.0f);
+    texVertBuffData[2] = TexturedVertex((GLfloat)w, 0.0f, 0.0f, 1.0f, 0.0f);
+
+    texVertBuffData[3] = texVertBuffData[1];
+    texVertBuffData[4] = TexturedVertex((GLfloat)w, (GLfloat)h, 0.0f, 1.0f, 1.0f);
+    texVertBuffData[5] = texVertBuffData[2];
+    //glUniform4f(glGetUniformLocation(shapeProgramId, "colorval"), color.r, color.g, color.b, color.a);
+
+    textureVertexAmount = 6;
+
+    FlushTextures(texture->texId, SDL_FLIP_NONE);
+    /*
     SDL_assert_release(SDL_SetTextureColorMod(texture,
         textureColorValues.top().r,
         textureColorValues.top().g,
@@ -314,10 +533,23 @@ void Graph::DrawTextureStretched(SDL_Texture* texture)
     SDL_assert_release(SDL_SetTextureAlphaMod(texture, alphaValues.top()) == 0);
     SDL_assert_release(SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND) == 0);
     SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, NULL) == 0);
+    */
 }
 
-void Graph::DrawTextureStretched(int x, int y, int w, int h, SDL_Texture* texture)
+void Graph::DrawTextureStretched(GLfloat tx, GLfloat ty, GLfloat tw, GLfloat th, TextureRecord* texture)
 {
+    texVertBuffData[0] = TexturedVertex(tx, ty, 0.0f, 0.0f, 0.0f);
+    texVertBuffData[1] = TexturedVertex(tx, ty + th, 0.0f, 0.0f, 1.0f);
+    texVertBuffData[2] = TexturedVertex(tx + tw, ty, 0.0f, 1.0f, 0.0f);
+
+    texVertBuffData[3] = texVertBuffData[1];
+    texVertBuffData[4] = TexturedVertex(tx + tw, ty + th, 0, 1.0f, 1.0f);
+    texVertBuffData[5] = texVertBuffData[2];
+
+    textureVertexAmount = 6;
+
+    FlushTextures(texture->texId, SDL_FLIP_NONE);
+    /*
     SDL_Rect dest;
     dest.x = x;
     dest.y = y;
@@ -329,48 +561,54 @@ void Graph::DrawTextureStretched(int x, int y, int w, int h, SDL_Texture* textur
         textureColorValues.top().g,
         textureColorValues.top().b) == 0);
     SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, &dest) == 0);
-}
-
-void Graph::DrawTexture(int x, int y, SDL_Texture* texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip)
-{
-    SDL_Rect dest;
-    dest.x = x;
-    dest.y = y;
-    if (texPart != NULL)
-    {
-        dest.w = texPart->w;
-        dest.h = texPart->h;
-    }
-    else
-    {
-        SDL_assert_release(SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h) == 0);
-    }
-
-    SDL_assert_release(SDL_SetTextureColorMod(texture,
-        textureColorValues.top().r,
-        textureColorValues.top().g,
-        textureColorValues.top().b) == 0);
-    SDL_assert_release(SDL_SetTextureAlphaMod(texture, alphaValues.top()) == 0);
-    SDL_assert_release(SDL_RenderCopyEx(renderer, texture, texPart, &dest, angle, NULL, flip) == 0);
+    */
 }
 
 void Graph::DrawTexture(const SDL_Rect* destRect, sprite_id texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip)
 {
-    SDL_Texture* tex = GetTexture(texture);
+    TextureRecord* tex = GetTexture(texture);
     SDL_assert_release(tex);
-    SDL_assert_release(SDL_SetTextureColorMod(tex,
-        textureColorValues.top().r,
-        textureColorValues.top().g,
-        textureColorValues.top().b) == 0);
-    SDL_assert_release(SDL_SetTextureAlphaMod(tex, alphaValues.top()) == 0);
-    SDL_assert_release(SDL_RenderCopyEx(renderer, tex, texPart, destRect, angle, NULL, flip) == 0);
-}
+    SDL_assert_release(destRect);
 
-void Graph::DrawTexture(int x, int y, sprite_id texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip)
-{
-    SDL_Texture* tex = GetTexture(texture);
-    SDL_assert_release(tex);
-    DrawTexture(x, y, tex, texPart, angle, flip);
+    float ux = 0;
+    float uy = 0;
+    float uw = 1.0f;
+    float uh = 1.0f;
+    if (texPart != nullptr)
+    {
+        ux = texPart->x / (GLfloat)tex->w;
+        uy = texPart->y / (GLfloat)tex->h;
+        uw = texPart->w / (GLfloat)tex->w;
+        uh = texPart->h / (GLfloat)tex->h;
+    }
+
+    float tx = (GLfloat)destRect->x;
+    float ty = (GLfloat)destRect->y;
+
+    float tw = (GLfloat)tex->w;
+    float th = (GLfloat)tex->h;
+
+    if (destRect->w)
+    {
+        tw = (GLfloat)destRect->w;
+    }
+
+    if (destRect->h)
+    {
+        th = (GLfloat)destRect->h;
+    }
+
+    texVertBuffData[0] = TexturedVertex(tx, ty, 0.0f, ux, uy);
+    texVertBuffData[1] = TexturedVertex(tx, ty + th, 0.0f, ux, uy + uh);
+    texVertBuffData[2] = TexturedVertex(tx + tw, ty, 0.0f, ux + uw, uy);
+
+    texVertBuffData[3] = texVertBuffData[1];
+    texVertBuffData[4] = TexturedVertex(tx + tw, ty + th, 0, ux + uw, uy + uh);
+    texVertBuffData[5] = texVertBuffData[2];
+
+    textureVertexAmount = 6;
+
+    FlushTextures(tex->texId, flip);
 }
 
 void Graph::FillRect(int x1, int y1, int x2, int y2, const SDL_Color& color)
@@ -384,11 +622,11 @@ void Graph::FillRect(int x1, int y1, int x2, int y2, const SDL_Color& color)
     SDL_assert_release(SDL_RenderDrawRect(renderer, &rect) == 0);
 }
 
-SDL_Texture* Graph::GetTexture(sprite_id id) const
+TextureRecord* Graph::GetTexture(sprite_id id) const
 {
-    if (sprites.size() > id)
+    if (spriteList.size() > id)
     {
-        return sprites[id];
+        return spriteList.at(id).get();
     }
     else
     {
@@ -398,66 +636,79 @@ SDL_Texture* Graph::GetTexture(sprite_id id) const
 
 void Graph::GetTextureSize(sprite_id id, size_t* w, size_t* h) const
 {
-    SDL_Texture* target = GetTexture(id);
+    TextureRecord* target = GetTexture(id);
     SDL_assert_release(target);
-
-    SDL_Rect result;
-    SDL_assert_release(SDL_QueryTexture(target, NULL, NULL, &result.w, &result.h) == 0);
 
     if (w != NULL)
     {
-        *w = result.w;
+        *w = target->w;
     }
 
     if (h != NULL)
     {
-        *h = result.h;
+        *h = target->h;
     }
+}
+
+TextureRecord::TextureRecord()
+{
+    w = 0;
+    h = 0;
+    texId = 0;
+}
+
+TextureRecord::~TextureRecord()
+{
+    glDeleteTextures(1, &texId);
 }
 
 sprite_id Graph::LoadTexture(std::string filename)
 {
+    std::auto_ptr<TextureRecord> rec(new TextureRecord);
 
     if (preloadedSprites.count(filename) != 0)
     {
         return preloadedSprites.at(filename);
     }
-
-    SDL_Texture* result = IMG_LoadTexture(renderer, filename.c_str());
-    SDL_assert_release(result != NULL);
-    sprites.push_back(result);
-    preloadedSprites[filename] = sprites.size() - 1;
-    return sprites.size() - 1;
-}
-
-
-sprite_id Graph::LoadTextureAlphaPink(std::string filename)
-{
-    if (preloadedSprites.count(filename) != 0)
+    int gw;
+    int gh;
+    int cmp;
+    unsigned char* img = stbi_load(filename.c_str(), &gw, &gh, &cmp, STBI_rgb_alpha);
+    if (img == nullptr)
     {
-        return preloadedSprites.at(filename);
+        std::string err = "Could not load " + filename;
+        EngineRoutines::ShowSimpleMsg(err.c_str());
+    }
+    else
+    {
+        rec->w = gw;
+        rec->h = gh;
+        glGenTextures(1, &rec->texId);
+        glBindTexture(GL_TEXTURE_2D, rec->texId);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+        if (cmp == 3)
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, rec->w, rec->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
+        }
+        else
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rec->w, rec->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
+        }
+        spriteList.push_back(std::move(rec));
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+        stbi_image_free(img);
+        // return spritesOpengl.size() - 1;
     }
 
-    SDL_Surface* loaded_image = NULL;
-    SDL_Surface* optimized_image = NULL;
-    loaded_image = IMG_Load(filename.c_str());
-    if (loaded_image != NULL) {
-        optimized_image = SDL_ConvertSurface(loaded_image, loaded_image->format, 0);
-        SDL_FreeSurface(loaded_image);
 
-        SDL_assert_release(optimized_image != NULL);
-
-        Uint32 colorkey = SDL_MapRGB(optimized_image->format, 0xFF, 0x00, 0xFF);
-        SDL_SetColorKey(optimized_image, SDL_TRUE, colorkey);
-
-    }
-
-    SDL_Texture* prepared_texture = SDL_CreateTextureFromSurface(renderer, optimized_image);
-
-    SDL_assert_release(prepared_texture != NULL);
-    sprites.push_back(prepared_texture);
-    preloadedSprites[filename] = sprites.size() - 1;
-    return sprites.size() - 1;
+    preloadedSprites[filename] = spriteList.size() - 1;
+    return spriteList.size() - 1;
 }
 
 void Graph::ToggleFullscreen()
@@ -481,11 +732,7 @@ bool Graph::IsInFullScreen() const
 
 void Graph::FreeTextures()
 {
-    for (auto texture : sprites)
-    {
-        SDL_DestroyTexture(texture);
-    }
-    sprites.clear();
+    spriteList.clear();
     preloadedSprites.clear();
 }
 
@@ -526,15 +773,21 @@ void Graph::GrayScaleFilter(int x, int y, size_t w, size_t h)
     */
 }
 
-void Graph::DrawRect(int x, int y, size_t w, size_t h, const SDL_Color& color)
+void Graph::DrawRect(int nx, int ny, size_t w, size_t h, const GraphColor& color)
 {
-    SDL_Rect box{ x, y, static_cast<int>(w), static_cast<int>(h) };
-    SDL_BlendMode currentBlend;
-    SDL_GetRenderDrawBlendMode(renderer, &currentBlend);
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    SDL_RenderFillRect(renderer, &box);
-    SDL_SetRenderDrawBlendMode(renderer, currentBlend);
+    GLfloat x = (GLfloat)nx;
+    GLfloat y = (GLfloat)ny;
+
+    vertexBufferData[0] = Vertex(x, y, 0);
+    vertexBufferData[1] = Vertex(x, y + h, 0);
+    vertexBufferData[2] = Vertex(x + w, y, 0);
+
+    vertexBufferData[3] = vertexBufferData[1];
+    vertexBufferData[4] = Vertex(x + w, y + h, 0);
+    vertexBufferData[5] = vertexBufferData[2];
+
+    vertexAmount = 6;
+    FlushBasicShape(color, GL_TRIANGLES);
 }
 
 void Graph::SetViewPort(int x, int y, size_t w, size_t h)
@@ -567,7 +820,7 @@ void Graph::DrawLine(int x1, int y1, int x2, int y2, const SDL_Color& color)
 
 void Graph::PushAlpha(Uint8 new_alpha)
 {
-    alphaValues.push(new_alpha);
+    alphaValues.push(new_alpha / 255.0f);
 }
 
 void Graph::PopAlpha()
@@ -581,8 +834,8 @@ void Graph::PopAlpha()
 
 void Graph::ClearAlpha()
 {
-    alphaValues = std::stack<Uint8>();
-    alphaValues.push(255);
+    alphaValues = std::stack<GLfloat>();
+    alphaValues.push(1.0f);
 }
 
 void Graph::PushTextureColorValues(Uint8 r, Uint8 g, Uint8 b)

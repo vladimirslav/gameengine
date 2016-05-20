@@ -24,6 +24,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include <sstream>
 
+void EngineRoutines::ShowSimpleMsg(const char* msg)
+{
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+        "notice",
+        msg,
+        NULL);
+}
+
 SDL_assert_state EngineRoutines::handler(const SDL_assert_data* data,
                                          void*                  userdata)
 {

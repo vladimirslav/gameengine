@@ -47,11 +47,12 @@ void UiButton::Draw()
         g->PushTextureColorValues(colorFilter.r, colorFilter.g, colorFilter.b);
         if (stretchBg)
         {
-            g->DrawTextureStretched(x, y, width, height, g->GetTexture(bg));
+            g->DrawTextureStretched((GLfloat)x, (GLfloat)y, (GLfloat)width, (GLfloat)height, g->GetTexture(bg));
         }
         else
         {
-            g->DrawTexture(x, y, bg, nullptr, 0, flip);
+            SDL_Rect pos{ x, y, width, height };
+            g->DrawTexture(&pos, bg, nullptr, 0, flip);
         }
         g->PopTextureColorValue();
     }

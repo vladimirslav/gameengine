@@ -317,5 +317,8 @@
     <ClCompile Include="..\..\engine\base\pathfinding.cpp">
       <Filter>Base</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\engine\base\LoadShaders.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

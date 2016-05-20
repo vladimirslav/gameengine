@@ -39,7 +39,7 @@ void Particle::Update(int new_time)
     }
 }
 
-Particle::Particle(sprite_id _texture, int _x, int _y, int _life, int _time, particleCallback callBack)
+Particle::Particle(sprite_id _texture, GLfloat _x, GLfloat _y, int _life, int _time, particleCallback callBack)
     : x(_x), y(_y), lives(_life), time(_time), texture(_texture), callback(callBack)
 {
     dead = false;
@@ -58,12 +58,12 @@ bool Particle::IsDead()
     return dead;
 }
 
-int Particle::GetX()
+GLfloat Particle::GetX()
 {
     return x;
 }
 
-int Particle::GetY()
+GLfloat Particle::GetY()
 {
     return y;
 }
@@ -88,7 +88,7 @@ sprite_id Particle::GetTexture()
     return texture;
 }
 
-MovingParticle::MovingParticle(sprite_id _texture, int _x, int _y, int _life, int _dx, int _dy, int _time)
+MovingParticle::MovingParticle(sprite_id _texture, GLfloat _x, GLfloat _y, int _life, GLfloat _dx, GLfloat _dy, int _time)
     : Particle(_texture, _x, _y, _life, _time), dx(_dx), dy(_dy)
 {
 }
@@ -102,15 +102,16 @@ void MovingParticle::Update(int new_time)
 
 void MovingParticle::Draw(Graph* gui)
 {
-    gui->DrawTexture(GetX(), GetY(), gui->GetTexture(GetTexture()), GetFrame(), 0, SDL_FLIP_NONE);
+    SDL_Rect r{ (int)GetX(), (int)GetY(), 0, 0 };
+    gui->DrawTexture(&r, GetTexture(), GetFrame(), 0, SDL_FLIP_NONE);
 }
 
 MovingTextParticle::MovingTextParticle(sprite_id _texture,
-                                       int _x,
-                                       int _y,
+                                       GLfloat _x,
+                                       GLfloat _y,
                                        int _life,
-                                       int _dx,
-                                       int _dy,
+                                       GLfloat _dx,
+                                       GLfloat _dy,
                                        int _time,
                                        const FontDescriptor* fontId, 
                                        std::string text, 
@@ -124,15 +125,15 @@ MovingTextParticle::MovingTextParticle(sprite_id _texture,
 
 void MovingTextParticle::Draw(Graph* gui)
 {
-    gui->WriteNormal(*font, text, x, y, color);
+    gui->WriteNormal(*font, text, (int)x, (int)y, color);
 }
 
 AnimatedParticle::AnimatedParticle(sprite_id _texture,
-                                   int _x,
-                                   int _y,
+                                   GLfloat _x,
+                                   GLfloat _y,
                                    int _life,
-                                   int _dx,
-                                   int _dy,
+                                   GLfloat _dx,
+                                   GLfloat _dy,
                                    int _time,
                                    size_t frame_w,
                                    size_t frame_h,
@@ -168,7 +169,7 @@ void AnimatedParticle::Update(int new_time)
 
 void AnimatedParticle::Draw(Graph* g)
 {
-    SDL_Rect frame{GetX(), GetY(), static_cast<int>(drawnW), static_cast<int>(drawnH)};
+    SDL_Rect frame{(int)GetX(), (int)GetY(), static_cast<int>(drawnW), static_cast<int>(drawnH)};
     SDL_Rect framePart{ static_cast<int>(currentFrame * frameW), 0, static_cast<int>(frameW), static_cast<int>(frameH) };
     g->DrawTexture(&frame, texture, &framePart, 0, SDL_FLIP_NONE);
 }
@@ -218,7 +219,7 @@ void EngineParticles::Clear()
     particles.clear();
 }
 
-FadingTextParticle::FadingTextParticle(int _x, int _y, int _life, int _time, const FontDescriptor* fontId, std::string& text, SDL_Color color)
+FadingTextParticle::FadingTextParticle(GLfloat _x, GLfloat _y, int _life, int _time, const FontDescriptor* fontId, std::string& text, SDL_Color color)
     : Particle(0, _x, _y, _life, _time)
     , font(fontId)
     , text(text)
@@ -231,10 +232,10 @@ FadingTextParticle::FadingTextParticle(int _x, int _y, int _life, int _time, con
 void FadingTextParticle::Draw(Graph* gui)
 {
     color.a = static_cast<Uint8>(255 * t.RemainingPart());
-    gui->WriteNormal(*font, text, x, y, color);
+    gui->WriteNormal(*font, text, (int)x, (int)y, color);
 }
 
-FadingOutPointerParticle::FadingOutPointerParticle(sprite_id _texture, int _x, int _y, int _life, int _time, int maxDx, int maxDy)
+FadingOutPointerParticle::FadingOutPointerParticle(sprite_id _texture, GLfloat _x, GLfloat _y, int _life, int _time, GLfloat maxDx, GLfloat maxDy)
     : Particle(_texture, _x, _y, _life, _time)
     , t(_life)
     , moveX(0)
@@ -246,12 +247,12 @@ FadingOutPointerParticle::FadingOutPointerParticle(sprite_id _texture, int _x, i
 {
     if (maxDx != 0)
     {
-        dx = (maxDx > 0) ? 1 : -1;
+        dx = (maxDx > 0) ? 1.0f : -1.0f;
     }
 
     if (maxDy != 0)
     {
-        dy = (maxDy > 0) ? 1 : -1;
+        dy = (maxDy > 0) ? 1.0f : -1.0f;
     }
 }
 

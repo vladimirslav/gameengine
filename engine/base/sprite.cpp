@@ -51,12 +51,18 @@ Sprite::Sprite(Graph* g,
 void Sprite::Draw(Graph* g, int x, int y)
 {
     SDL_Rect current;
+
     current.x = frameW * frameNum;
     current.y = currentAnim->rowOnSpriteSheet * frameH;
     current.w = frameW;
     current.h = frameH;
 
-    g->DrawTexture(x, y, spriteBg, &current, 0 ,direction == DIRECTION_RIGHT ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL);
+    SDL_Rect spritePos;
+    spritePos.x = x;
+    spritePos.y = y;
+    spritePos.w = frameW;
+    spritePos.h = frameH;
+    g->DrawTexture(&spritePos, spriteBg, &current, 0, direction == DIRECTION_RIGHT ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL);
 }
 
 bool Sprite::Update(size_t newTime)

@@ -31,8 +31,8 @@ namespace EngineParticles
     class Particle
     {
     protected:
-        int x;
-        int y;
+        GLfloat x;
+        GLfloat y;
         int lives;
         int time;
         bool dead;
@@ -44,10 +44,10 @@ namespace EngineParticles
 
         virtual bool IsDead();
 
-        int GetX();
-        int GetY();
+        GLfloat GetX();
+        GLfloat GetY();
 
-        Particle(sprite_id _texture, int _x, int _y, int _life, int _time, particleCallback callBack = nullptr);
+        Particle(sprite_id _texture, GLfloat _x, GLfloat _y, int _life, int _time, particleCallback callBack = nullptr);
         virtual void setCallback(particleCallback callback);
         virtual sprite_id GetTexture();
         virtual SDL_Rect* GetFrame();
@@ -61,10 +61,10 @@ namespace EngineParticles
     class MovingParticle : public Particle
     {
     protected:
-        int dx;
-        int dy;
+        GLfloat dx;
+        GLfloat dy;
     public:
-        MovingParticle(sprite_id _texture, int _x, int _y, int _life, int _dx, int _dy, int _time);
+        MovingParticle(sprite_id _texture, GLfloat _x, GLfloat _y, int _life, GLfloat _dx, GLfloat _dy, int _time);
         virtual void Update(int new_time);
         virtual void Draw(Graph* g);
     };
@@ -86,11 +86,11 @@ namespace EngineParticles
 
     public:
         AnimatedParticle(sprite_id _texture,
-                         int _x,
-                         int _y,
+                         GLfloat _x,
+                         GLfloat _y,
                          int _life,
-                         int _dx,
-                         int _dy,
+                         GLfloat _dx,
+                         GLfloat _dy,
                          int _time,
                          size_t frame_w,
                          size_t frame_h,
@@ -111,7 +111,7 @@ namespace EngineParticles
         std::string text;
         SDL_Color color;
     public:
-        MovingTextParticle(sprite_id _texture, int _x, int _y, int _life, int _dx, int _dy, int _time, const FontDescriptor* fontId, std::string text, SDL_Color color);
+        MovingTextParticle(sprite_id _texture, GLfloat _x, GLfloat _y, int _life, GLfloat _dx, GLfloat _dy, int _time, const FontDescriptor* fontId, std::string text, SDL_Color color);
         virtual void Draw(Graph* gui);
     };
 
@@ -123,7 +123,7 @@ namespace EngineParticles
         std::string text;
         SDL_Color color;
     public:
-        FadingTextParticle(int _x, int _y, int _life, int _time, const FontDescriptor* fontId, std::string& text, SDL_Color color);
+        FadingTextParticle(GLfloat _x, GLfloat _y, int _life, int _time, const FontDescriptor* fontId, std::string& text, SDL_Color color);
         virtual void Draw(Graph* gui);
     };
 
@@ -132,16 +132,16 @@ namespace EngineParticles
     protected:
         EngineTimer::CountdownTimer t;
 
-        int moveX;
-        int moveY;
+        GLfloat moveX;
+        GLfloat moveY;
 
-        int dx;
-        int dy;
+        GLfloat dx;
+        GLfloat dy;
 
-        int maxDx;
-        int maxDy;
+        GLfloat maxDx;
+        GLfloat maxDy;
     public:
-        FadingOutPointerParticle(sprite_id _texture, int _x, int _y, int _life, int _time, int maxDx, int maxDy);
+        FadingOutPointerParticle(sprite_id _texture, GLfloat _x, GLfloat _y, int _life, int _time, GLfloat maxDx, GLfloat maxDy);
         virtual void Draw(Graph* gui);
         virtual void Update(int new_time);
     };

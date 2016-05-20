@@ -66,7 +66,7 @@ namespace EngineWindow
 
 		virtual void OnFadeOut();
 
-		virtual int GetCurrentTime();
+		virtual int GetCurrentGameTime();
     };
 
     class NotificationWindow : public GameWindow

@@ -38,11 +38,15 @@ void UiImage::Draw()
     StartDraw();
     if (showPart)
     {
-        g->DrawTexture(x, y, g->GetTexture(sprite), &displayedArea, 0, SDL_FLIP_NONE);
+        if (displayedArea.w != 0)
+        {
+            SDL_Rect pos{ x, y, displayedArea.w, displayedArea.h };
+            g->DrawTexture(&pos, sprite, &displayedArea, 0, SDL_FLIP_NONE);
+        }
     }
     else
     {
-        g->DrawTextureStretched(x, y, width, height, g->GetTexture(sprite));
+        g->DrawTextureStretched((GLfloat)x, (GLfloat)y, (GLfloat)width, (GLfloat)height, g->GetTexture(sprite));
     }
     UiObject::Draw();
     EndDraw();

@@ -131,7 +131,7 @@ void UiObject::EndDraw()
         if (fadeState != FadeState::NO_FADE)
         {
             g->PushAlpha(currentAlpha);
-            g->DrawTextureStretched(x, y, width, height, g->GetTexture(fadeSprite));
+            g->DrawTextureStretched((GLfloat)x, (GLfloat)y, (GLfloat)width, (GLfloat)height, g->GetTexture(fadeSprite));
             g->PopAlpha();
         }
     }

@@ -111,6 +111,7 @@
     <ClCompile Include="..\..\engine\base\gamescreen.cpp" />
     <ClCompile Include="..\..\engine\base\graph.cpp" />
     <ClCompile Include="..\..\engine\base\input.cpp" />
+    <ClCompile Include="..\..\engine\base\LoadShaders.cpp" />
     <ClCompile Include="..\..\engine\base\particles.cpp" />
     <ClCompile Include="..\..\engine\base\pathfinding.cpp" />
     <ClCompile Include="..\..\engine\base\routines.cpp" />
@@ -171,13 +172,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\Vladimir\proj_training\gameengine\engine\SDL2\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\..\engine\SDL2\include;$(SolutionDir)\..\engine\glew\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\Vladimir\proj_training\gameengine\engine\SDL2\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\..\engine\engine\SDL2\include;$(SolutionDir)\..\engine\glew;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\Users\Vladimir\proj_training\gameengine\engine\SDL2\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\..\engine\SDL2\include;$(SolutionDir)\..\engine\glew\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>C:\Users\Vladimir\proj_training\gameengine\engine\SDL2\include;$(IncludePath)</IncludePath>
