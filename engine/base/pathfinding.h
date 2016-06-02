@@ -34,7 +34,7 @@ int HFunc(int xStart, int yStart, int xDest, int yDest);
 template <typename T> tile_list Astar(T*** field,
                                       size_t w,
                                       size_t h, 
-                                      bool(*checkFunc)(const T*),
+                                      bool(*checkFunc)(int x, int y),
                                       int xStart,
                                       int yStart,
                                       int xDest,
@@ -57,7 +57,7 @@ template <typename T> tile_list Astar(T*** field,
                 return{}; // empty list, one of the destination tiles is out of bounds
             }
 
-            if (checkFunc(field[newX][yDest]) == false)
+            if (checkFunc(newX, yDest) == false)
             {
                 return{}; // empty list, one of the destination tiles is occupied
             }
@@ -150,7 +150,7 @@ template <typename T> tile_list Astar(T*** field,
                             }
 
                             // field can be visited?
-                            if (checkFunc(field[newX][adjY]) == false)
+                            if (checkFunc(newX, adjY) == false)
                             {
                                 validTiles = false;
                                 break;

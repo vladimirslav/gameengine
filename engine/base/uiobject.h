@@ -49,6 +49,7 @@ protected:
 	FadeMode  fadeMode;
 
 	EngineTimer::CountdownTimer fadeCountdown;
+    EngineTimer::CountdownTimer flashCountdown;
 
     std::vector<UiObject*> objectList;
 
@@ -56,6 +57,10 @@ protected:
     bool isClicked;
 
     bool isHidden;
+    bool isHighlighted;
+
+    GLuint flashingProgram;
+    size_t flashingTime;
 
     int customId;
 
@@ -83,6 +88,12 @@ public:
 
     size_t GetWidth() const;
     size_t GetHeight() const;
+
+    void Highlight();
+    void DisableHighlight();
+
+    void Flash(size_t ftime, GLuint flashProgram);
+    void DisableFlash();
 
 	// Leave sprite as zero if FADE_TO_BG selected
     virtual void FadeIn(FadeMode mode, sprite_id fadeInSprite, size_t fadeInTime);

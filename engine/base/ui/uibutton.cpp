@@ -45,16 +45,30 @@ void UiButton::Draw()
     if (hasBg)
     {
         g->PushTextureColorValues(colorFilter.r, colorFilter.g, colorFilter.b);
+
+        SDL_Rect pos{ x, y, 0, 0 };
         if (stretchBg)
         {
-            g->DrawTextureStretched((GLfloat)x, (GLfloat)y, (GLfloat)width, (GLfloat)height, g->GetTexture(bg));
+            pos.w = width;
+            pos.h = height;
         }
-        else
+
+        g->DrawTexture(&pos, bg, nullptr, 0, flip);
+
+        if (isHighlighted)
         {
-            SDL_Rect pos{ x, y, width, height };
-            g->DrawTexture(&pos, bg, nullptr, 0, flip);
+            g->DrawTexture(g->outlineProgramId, &pos, bg, nullptr, 0, flip);
         }
+
         g->PopTextureColorValue();
+
+        if (flashingTime > 0)
+        {
+            Uint8 c = (Uint8)(255.0f * (GLfloat)flashCountdown.GonePart());
+            g->PushTextureColorValues(c, c, c);
+            g->DrawTexture(flashingProgram, &pos, bg, nullptr, 0, flip);
+            g->PopTextureColorValue();
+        }
     }
     else
     {

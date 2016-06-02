@@ -52,6 +52,11 @@ int EngineRoutines::GetRand(int min, int max)
     return res;
 }
 
+float EngineRoutines::GetRandF()
+{
+    return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+}
+
 void EngineRoutines::InitRand()
 {
     srand(static_cast<int>(time(NULL)));

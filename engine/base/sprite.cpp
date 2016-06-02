@@ -48,7 +48,7 @@ Sprite::Sprite(Graph* g,
     }
 }
 
-void Sprite::Draw(Graph* g, int x, int y)
+SDL_Rect Sprite::PrepareCurrentCoords()
 {
     SDL_Rect current;
 
@@ -56,13 +56,38 @@ void Sprite::Draw(Graph* g, int x, int y)
     current.y = currentAnim->rowOnSpriteSheet * frameH;
     current.w = frameW;
     current.h = frameH;
+    return current;
+}
 
+SDL_Rect Sprite::PrepareDispRect(int x, int y)
+{
     SDL_Rect spritePos;
     spritePos.x = x;
     spritePos.y = y;
     spritePos.w = frameW;
     spritePos.h = frameH;
+    return spritePos;
+}
+
+sprite_id Sprite::GetSpriteId()
+{
+    return spriteBg;
+}
+
+void Sprite::Draw(Graph* g, int x, int y)
+{
+    SDL_Rect current = PrepareCurrentCoords();
+    SDL_Rect spritePos = PrepareDispRect(x, y);
+
     g->DrawTexture(&spritePos, spriteBg, &current, 0, direction == DIRECTION_RIGHT ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL);
+}
+
+void Sprite::Draw(GLuint shaderProgram, Graph* g, int x, int y)
+{
+    SDL_Rect current = PrepareCurrentCoords();
+    SDL_Rect spritePos = PrepareDispRect(x, y);
+
+    g->DrawTexture(shaderProgram, &spritePos, spriteBg, &current, 0, direction == DIRECTION_RIGHT ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL);
 }
 
 bool Sprite::Update(size_t newTime)
@@ -110,4 +135,9 @@ const std::string& Sprite::getCurrentAnimationName() const
 void Sprite::SetDirection(DIRECTION newDirection)
 {
     direction = newDirection;
+}
+
+DIRECTION Sprite::GetDirection() const
+{
+    return direction;
 }

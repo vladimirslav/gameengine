@@ -50,12 +50,18 @@ public:
            size_t currentTime,
            const std::string& initialAnim);
     void Draw(Graph* g, int x, int y);
+    void Draw(GLuint shaderProgram, Graph* g, int x, int y);
     bool Update(size_t newTime); //true on animation ended
     void SetDirection(DIRECTION newDirection);
+    DIRECTION GetDirection() const;
 
     // return true if anim with new id exists
     bool SwitchAnim(const std::string& newAnim, bool noRepeat = false);
     const std::string& getCurrentAnimationName() const;
+
+    SDL_Rect PrepareCurrentCoords();
+    SDL_Rect PrepareDispRect(int x, int y);
+    sprite_id GetSpriteId();
 
 protected:
     std::string currentAnimName;

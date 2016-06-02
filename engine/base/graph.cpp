@@ -50,12 +50,12 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
 	, screenH(_screen_h)
 	, shakeDeltaX(0)
 	, shakeDeltaY(0)
-    , renderer(NULL)
     ,  BLACK(SDL_Color{ 0, 0, 0, 0 })
     , cursor(nullptr)
     , currentCursorType(CursorType::ARROW)
 	, isFullScreen(false)
     , vertexAmount(0)
+    , postProcFlip(SDL_FLIP_VERTICAL)
 {
     SDL_SetAssertionHandler(EngineRoutines::handler, NULL);
 
@@ -70,9 +70,6 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
     context = SDL_GL_CreateContext(screen);
     SDL_assert_release(context != NULL);
 
-    renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    SDL_assert_release(renderer != NULL);
-
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -86,22 +83,21 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
             (const char*)glewGetErrorString(err),
             NULL);
     }
-    
-	if (_w != _screen_w || _h != _screen_h)
-	{
-		SDL_assert_release(SDL_RenderSetScale(renderer, _screen_w / (float)_w, _screen_h / (float)_h) == 0);
-	}
 
     alphaValues.push(1.0f);
-    textureColorValues.push(SDL_Color{ 255, 255, 255, 255 });
+    textureColorValues.push(GraphColor{ 1.0f, 1.0f, 1.0f, 1.0f });
 
     cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
     SDL_SetCursor(cursor);
 
     shapeProgramId = LoadShaders("effects/baseshapev.glsl", "effects/baseshapef.glsl");
     textureProgramId = LoadShaders("effects/texv.glsl", "effects/texf.glsl");
+    outlineProgramId = LoadShaders("effects/texv.glsl", "effects/outline.glsl");
+
+    scenePostProcessingShader = textureProgramId;
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
 
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -112,6 +108,29 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
     glBufferData(GL_ARRAY_BUFFER, sizeof(texVertBuffData), texVertBuffData, GL_DYNAMIC_DRAW);
 
     PrepareScreen();
+
+    glGenFramebuffers(1, &frameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
+    frameBufferTexture.h = screenH;
+    frameBufferTexture.w = screenW;
+
+    glGenTextures(1, &frameBufferTexture.texId);
+    glBindTexture(GL_TEXTURE_2D, frameBufferTexture.texId);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _screen_w, _screen_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, frameBufferTexture.texId, 0);
+    GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+
+    glDrawBuffers(1, DrawBuffers);
+    SDL_assert_release(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+
 }
 
 static const GLfloat g_vertex_buffer_data[] = {
@@ -138,10 +157,18 @@ void Graph::PrepareScreen()
 
 void Graph::FlushTextures(GLuint texId, SDL_RendererFlip flip)
 {
-    glEnable(GL_TEXTURE_2D);
-    glUseProgram(textureProgramId);
+    FlushTextures(textureProgramId, texId, flip);
+}
 
-    glUniformMatrix4fv(glGetUniformLocation(textureProgramId, "MVP"), 1, GL_FALSE, orthoProj);
+void Graph::FlushTextures(GLuint program, GLuint texId, SDL_RendererFlip flip)
+{
+    glEnable(GL_TEXTURE_2D);
+    glUseProgram(program);
+
+    static GLfloat mtx[16];
+
+    glGetFloatv(GL_PROJECTION_MATRIX, mtx);
+    glUniformMatrix4fv(glGetUniformLocation(textureProgramId, "MVP"), 1, GL_FALSE, mtx);
 
     glBindBuffer(GL_ARRAY_BUFFER, texVertBuffer);
     glBufferSubData(GL_ARRAY_BUFFER, 0, textureVertexAmount * sizeof(TexturedVertex), texVertBuffData);
@@ -162,15 +189,15 @@ void Graph::FlushTextures(GLuint texId, SDL_RendererFlip flip)
     glUniform1i(texId, 0);
 
     GLfloat flips[2];
-    flips[0] = (GLfloat)(flip & SDL_FLIP_HORIZONTAL) * (texVertBuffData[0].u + texVertBuffData[4].u);
-    flips[1] = (GLfloat)(flip & SDL_FLIP_VERTICAL) * (texVertBuffData[0].v + texVertBuffData[4].v);
-
+    flips[0] = (GLfloat)((flip & SDL_FLIP_HORIZONTAL) > 0 ? 1 : 0) * (texVertBuffData[0].u + texVertBuffData[4].u);
+    flips[1] = (GLfloat)((flip & SDL_FLIP_VERTICAL) > 0 ? 1 : 0) * (texVertBuffData[0].v + texVertBuffData[4].v);
+     
     glUniform2f(glGetUniformLocation(textureProgramId, "flip"), flips[0], flips[1]);
 
     glUniform4f(glGetUniformLocation(textureProgramId, "colorMod"), 
-                textureColorValues.top().r / 255.0f,
-                textureColorValues.top().g / 255.0f,
-                textureColorValues.top().b / 255.0f,
+                textureColorValues.top().r,
+                textureColorValues.top().g,
+                textureColorValues.top().b,
                 alphaValues.top());
 
     glEnableVertexAttribArray(1);
@@ -201,8 +228,15 @@ Graph::~Graph()
     FreeFonts();
     TTF_Quit();
 
+    glDeleteTextures(1, &frameBufferTexture.texId);
+    glDeleteBuffers(1, &vertexBuffer);
+    glDeleteBuffers(1, &texVertBuffer);
+
+    glDeleteProgram(textureProgramId);
+    glDeleteProgram(outlineProgramId);
+    glDeleteProgram(shapeProgramId);
+
     SDL_FreeCursor(cursor);
-    SDL_DestroyRenderer(renderer);
     SDL_GL_DeleteContext(context);
     SDL_DestroyWindow(screen);
 
@@ -257,26 +291,73 @@ void Graph::ClrScr()
     //SetViewPort(0, 0, w, h);
 	int xdelta = 0; 
 	int ydelta = 0;
-	
 	if (EngineTimer::IsActive(SHAKE_TIMER))
 	{
 		/*
 		xdelta = shakeDeltaX - rand() % (shakeDeltaX * 2);
 		ydelta = shakeDeltaY - rand() % (shakeDeltaY * 2);
 		*/
-		xdelta = rand() % shakeDeltaX;
-		ydelta = rand() % shakeDeltaY;
+        if (shakeDeltaX != 0)
+        {
+            xdelta = rand() % shakeDeltaX;
+        }
+		
+        if (shakeDeltaY != 0)
+        {
+            ydelta = rand() % shakeDeltaY;
+        }
 	}
 
-	SetViewPort(xdelta, ydelta, w + xdelta, h + ydelta);
-    SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
-    SDL_RenderClear(renderer);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+    glViewport(0, 0, screenW, screenH);
+    glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
+    glLoadIdentity();
 
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
     glOrtho(0.0f, w, h, 0.0f, 0.0f, 1.0f);
+
+    if (xdelta != 0 && ydelta != 0)
+    {
+        glTranslatef((GLfloat)xdelta, (GLfloat)ydelta, 0);
+    }
 }
+
+/* set program to be used on post-processing */
+void Graph::SetPostProcessingProgram(GLuint program, SDL_RendererFlip _postProcFlip)
+{
+    postProcFlip = _postProcFlip;
+    scenePostProcessingShader = program;
+}
+
+void Graph::ResetPostprocessingProgram()
+{
+    postProcFlip = SDL_FLIP_VERTICAL;
+    scenePostProcessingShader = textureProgramId;
+}
+
+void Graph::ApplyShaderToScene(GLuint program)
+{
+    SDL_Rect destRect{ 0, 0, w, h };
+    //glOrtho(0.0f, w, h, 0.0f, 0.0f, 1.0f);
+    DrawTexture(program, &destRect, &frameBufferTexture, &destRect, 0, postProcFlip);
+}
+
+void Graph::FlushBuffer(GLuint shaderProgram, bool startNew)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    SDL_Rect destRect{ 0, 0, w, h };
+    //glOrtho(0.0f, w, h, 0.0f, 0.0f, 1.0f);
+    DrawTexture(shaderProgram, &destRect, &frameBufferTexture, &destRect, 0, postProcFlip);
+    if (startNew)
+    {
+        glClearColor(0, 0, 0, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+}
+
 /*
  * Flip the buffer
 */
@@ -289,6 +370,9 @@ void Graph::Flip()
             ApplyFilter(0, 0, w, h, shakeColor);
         }
     }
+
+    FlushBuffer(scenePostProcessingShader, false);
+
     SDL_GL_SwapWindow(screen);
 }
 
@@ -297,8 +381,8 @@ void Graph::Flip()
 */
 void Graph::FillScreen(const SDL_Color& color)
 {
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    SDL_RenderClear(renderer);
+    glClearColor(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 /*
@@ -307,10 +391,11 @@ void Graph::FillScreen(const SDL_Color& color)
  * @param y is the y coordinate of the pixel
  * @param color is the color in Uint32
 */
-void Graph::PutPixel(int x, int y, const SDL_Color& color)
+void Graph::PutPixel(int x, int y, const GraphColor& color)
 {
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    SDL_RenderDrawPoint(renderer, x, y);
+    vertexBufferData[0] = Vertex((GLfloat)x, (GLfloat)y, 0);
+    vertexAmount = 1;
+    FlushBasicShape(color, GL_POINT);
 }
 
 const int &Graph::GetWidth() const
@@ -326,7 +411,7 @@ const int &Graph::GetHeight() const
 /*
  * write the text on the screen
  */
-void Graph::WriteText(TTF_Font* f, const std::string& str, int x, int y, const SDL_Color& color)
+void Graph::WriteText(TTF_Font* f, const std::string& str, int x, int y, const SDL_Color& color, GLfloat scale)
 {
     if (str.empty())
     {
@@ -346,11 +431,11 @@ void Graph::WriteText(TTF_Font* f, const std::string& str, int x, int y, const S
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, message->w, message->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, message->pixels);
 
     texVertBuffData[0] = TexturedVertex((GLfloat)x, (GLfloat)y, 0.0f, 0.0f, 0.0f);
-    texVertBuffData[1] = TexturedVertex((GLfloat)x, (GLfloat)y + message->h, 0.0f, 0.0f, 1.0f);
-    texVertBuffData[2] = TexturedVertex((GLfloat)x + message->w, (GLfloat)y, 0.0f, 1.0f, 0.0f);
+    texVertBuffData[1] = TexturedVertex((GLfloat)x, (GLfloat)y + message->h * scale, 0.0f, 0.0f, 1.0f);
+    texVertBuffData[2] = TexturedVertex((GLfloat)x + message->w * scale, (GLfloat)y, 0.0f, 1.0f, 0.0f);
 
     texVertBuffData[3] = texVertBuffData[1];
-    texVertBuffData[4] = TexturedVertex((GLfloat)x + message->w, (GLfloat)y + message->h, 0, 1.0f, 1.0f);
+    texVertBuffData[4] = TexturedVertex((GLfloat)x + message->w * scale, (GLfloat)y + message->h * scale, 0, 1.0f, 1.0f);
     texVertBuffData[5] = texVertBuffData[2];
 
     textureVertexAmount = 6;
@@ -358,9 +443,12 @@ void Graph::WriteText(TTF_Font* f, const std::string& str, int x, int y, const S
     glDisable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    // Since SDL text ignores alpha color value
+    PushAlpha(color.a / 255.0f);
     FlushTextures(texture, SDL_FLIP_NONE);
     glDeleteTextures(1, &texture);
     SDL_FreeSurface(message);
+    PopAlpha();
 }
 
 void Graph::WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y)
@@ -368,24 +456,44 @@ void Graph::WriteNormal(const FontDescriptor& fontHandler, const std::string& st
     WriteText(fonts[fontHandler.tableId], str, x, y, SELF_WHITE);
 }
 
-void Graph::WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y, const SDL_Color& color)
+void Graph::WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y, const SDL_Color& color, GLfloat scale)
 {
-    WriteText(fonts[fontHandler.tableId], str, x, y, color);
+    WriteText(fonts[fontHandler.tableId], str, x, y, color, scale);
 }
 
 void Graph::WriteBorderedText(const FontDescriptor& fontHandler, 
     const std::string& str, 
-    int x, 
-    int y, 
+    GLfloat x, 
+    GLfloat y, 
     const SDL_Color& color, 
-    const SDL_Color& borderColor)
+    SDL_Color borderColor,
+    GLfloat scale)
 {
+    borderColor.a = color.a;
     //TODO: no need to make 5 surfaces (like it is done in WriteText), move the code back here to optimize the speed
-    WriteText(fonts[fontHandler.tableId], str, x - 1, y, borderColor);
-    WriteText(fonts[fontHandler.tableId], str, x + 1, y, borderColor);
-    WriteText(fonts[fontHandler.tableId], str, x, y - 1, borderColor);
-    WriteText(fonts[fontHandler.tableId], str, x, y + 1, borderColor);
-    WriteText(fonts[fontHandler.tableId], str, x, y, color);
+    WriteText(fonts[fontHandler.tableId], str, (int)x - 1, (int)y, borderColor, scale);
+    WriteText(fonts[fontHandler.tableId], str, (int)x + 1, (int)y, borderColor, scale);
+    WriteText(fonts[fontHandler.tableId], str, (int)x, (int)y - 1, borderColor, scale);
+    WriteText(fonts[fontHandler.tableId], str, (int)x, (int)y + 1, borderColor, scale);
+    WriteText(fonts[fontHandler.tableId], str, (int)x, (int)y, color, scale);
+}
+
+void Graph::WriteBorderedParagraph(const FontDescriptor& fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color, SDL_Color borderColor)
+{
+    borderColor.a = color.a;
+    //TODO: no need to make 5 surfaces (like it is done in WriteText), move the code back here to optimize the speed
+    WriteParagraph(fontHandler, str, x - 1, y, maxW, allowedBarrier, borderColor);
+    WriteParagraph(fontHandler, str, x + 1, y, maxW, allowedBarrier, borderColor);
+    WriteParagraph(fontHandler, str, x, y - 1, maxW, allowedBarrier, borderColor);
+    WriteParagraph(fontHandler, str, x, y + 1, maxW, allowedBarrier, borderColor);
+
+    WriteParagraph(fontHandler, str, x, y, maxW, allowedBarrier, color);
+    /*
+    WriteText(fonts[fontHandler.tableId], str, (int)x + 1, (int)y, borderColor, scale);
+    WriteText(fonts[fontHandler.tableId], str, (int)x, (int)y - 1, borderColor, scale);
+    WriteText(fonts[fontHandler.tableId], str, (int)x, (int)y + 1, borderColor, scale);
+    WriteText(fonts[fontHandler.tableId], str, (int)x, (int)y, color, scale);
+    */
 }
 
 void Graph::WriteParagraph(const FontDescriptor& fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color)
@@ -420,9 +528,14 @@ void Graph::WriteParagraph(const FontDescriptor& fontHandler, const std::string&
     glDisable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    // Since SDL text ignores alpha color value
+    PushAlpha(color.a / 255.0f);
+
     FlushTextures(texture, SDL_FLIP_NONE);
     glDeleteTextures(1, &texture);
     SDL_FreeSurface(message);
+
+    PopAlpha();
     /*
     SDL_Texture* preparedMsg = SDL_CreateTextureFromSurface(renderer, message);
     SDL_assert_release(preparedMsg != NULL);
@@ -451,7 +564,12 @@ void Graph::FlushBasicShape(const GraphColor& color, GLenum mode)
 {
     glUseProgram(shapeProgramId);
     glUniform4f(glGetUniformLocation(shapeProgramId, "colorval"), color.r, color.g, color.b, color.a);
-    glUniformMatrix4fv(glGetUniformLocation(shapeProgramId, "MVP"), 1, GL_FALSE, orthoProj);
+    
+    static GLfloat mtx[16];
+    glGetFloatv(GL_PROJECTION_MATRIX, mtx);
+
+    //glUniformMatrix4fv(glGetUniformLocation(shapeProgramId, "MVP"), 1, GL_FALSE, mtx);
+    glUniformMatrix4fv(glGetUniformLocation(shapeProgramId, "MVP"), 1, GL_FALSE, mtx);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -475,7 +593,7 @@ void Graph::FlushBasicShape(const GraphColor& color, GLenum mode)
     //glUseProgram(0);
 }
 
-void Graph::DrawTexture(GLfloat x, GLfloat y, TextureRecord* texture)
+void Graph::DrawTexture(GLuint shaderProgramId, GLfloat x, GLfloat y, TextureRecord* texture)
 {
 
     texVertBuffData[0] = TexturedVertex(x, y, 0.0f, 0.0f, 0.0f);
@@ -489,19 +607,12 @@ void Graph::DrawTexture(GLfloat x, GLfloat y, TextureRecord* texture)
 
     textureVertexAmount = 6;
 
-    FlushTextures(texture->texId, SDL_FLIP_NONE);
-    /*
-    SDL_Rect dest;
-    dest.x = x;
-    dest.y = y;
-    SDL_assert_release(SDL_SetTextureColorMod(texture, 
-                                              textureColorValues.top().r,
-                                              textureColorValues.top().g,
-                                              textureColorValues.top().b) == 0);
-    SDL_assert_release(SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h) == 0);
-    SDL_assert_release(SDL_SetTextureAlphaMod(texture, alphaValues.top()) == 0);
-    SDL_assert_release(SDL_RenderCopy(renderer, texture, NULL, &dest) == 0);
-    */
+    FlushTextures(shaderProgramId, texture->texId, SDL_FLIP_NONE);
+}
+
+void Graph::DrawTexture(GLfloat x, GLfloat y, TextureRecord* texture)
+{
+    DrawTexture(textureProgramId, x, y, texture);
 }
 
 void Graph::DrawTexture(GLfloat x, GLfloat y, sprite_id texture)
@@ -538,6 +649,11 @@ void Graph::DrawTextureStretched(TextureRecord* texture)
 
 void Graph::DrawTextureStretched(GLfloat tx, GLfloat ty, GLfloat tw, GLfloat th, TextureRecord* texture)
 {
+    DrawTextureStretched(textureProgramId, tx, ty, tw, th, texture);
+}
+
+void Graph::DrawTextureStretched(GLuint shaderProgramId, GLfloat tx, GLfloat ty, GLfloat tw, GLfloat th, TextureRecord* texture)
+{
     texVertBuffData[0] = TexturedVertex(tx, ty, 0.0f, 0.0f, 0.0f);
     texVertBuffData[1] = TexturedVertex(tx, ty + th, 0.0f, 0.0f, 1.0f);
     texVertBuffData[2] = TexturedVertex(tx + tw, ty, 0.0f, 1.0f, 0.0f);
@@ -548,7 +664,7 @@ void Graph::DrawTextureStretched(GLfloat tx, GLfloat ty, GLfloat tw, GLfloat th,
 
     textureVertexAmount = 6;
 
-    FlushTextures(texture->texId, SDL_FLIP_NONE);
+    FlushTextures(shaderProgramId, texture->texId, SDL_FLIP_NONE);
     /*
     SDL_Rect dest;
     dest.x = x;
@@ -566,9 +682,19 @@ void Graph::DrawTextureStretched(GLfloat tx, GLfloat ty, GLfloat tw, GLfloat th,
 
 void Graph::DrawTexture(const SDL_Rect* destRect, sprite_id texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip)
 {
+    Graph::DrawTexture(textureProgramId, destRect, texture, texPart, angle, flip);
+}
+
+void Graph::DrawTexture(GLuint shaderProgramId, const SDL_Rect* destRect, sprite_id texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip)
+{
     TextureRecord* tex = GetTexture(texture);
     SDL_assert_release(tex);
     SDL_assert_release(destRect);
+    DrawTexture(shaderProgramId, destRect, tex, texPart, angle, flip);
+}
+
+void Graph::DrawTexture(GLuint shaderProgramId, const SDL_Rect* destRect, TextureRecord* tex, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip)
+{
 
     float ux = 0;
     float uy = 0;
@@ -608,18 +734,7 @@ void Graph::DrawTexture(const SDL_Rect* destRect, sprite_id texture, const SDL_R
 
     textureVertexAmount = 6;
 
-    FlushTextures(tex->texId, flip);
-}
-
-void Graph::FillRect(int x1, int y1, int x2, int y2, const SDL_Color& color)
-{
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    SDL_Rect rect;
-    rect.h = y2 - y1;
-    rect.w = x2 - x1;
-    rect.x = x1;
-    rect.y = y1;
-    SDL_assert_release(SDL_RenderDrawRect(renderer, &rect) == 0);
+    FlushTextures(shaderProgramId, tex->texId, flip);
 }
 
 TextureRecord* Graph::GetTexture(sprite_id id) const
@@ -738,14 +853,8 @@ void Graph::FreeTextures()
 
 void Graph::ApplyFilter(int x, int y, size_t w, size_t h, SDL_Color& color)
 {
-    SDL_Rect target{ x, y, static_cast<int>(w), static_cast<int>(h) };
-
-    SDL_BlendMode currentBlend;
-    SDL_GetRenderDrawBlendMode(renderer, &currentBlend);
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    SDL_RenderFillRect(renderer, &target);
-    SDL_SetRenderDrawBlendMode(renderer, currentBlend);
+    GraphColor c{color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f};
+    DrawRect(x, y, w, h, c);
 }
 
 void Graph::GrayScaleFilter(int x, int y, size_t w, size_t h)
@@ -792,15 +901,10 @@ void Graph::DrawRect(int nx, int ny, size_t w, size_t h, const GraphColor& color
 
 void Graph::SetViewPort(int x, int y, size_t w, size_t h)
 {
-    SDL_Rect viewPort;
-    viewPort.x = x;
-    viewPort.y = y;
-    viewPort.w = w;
-    viewPort.h = h;
-    SDL_RenderSetViewport(renderer, &viewPort);
+    //glViewport(x, y, w, h);
 }
 
-void Graph::DrawBorders(int x, int y, size_t w, size_t h, size_t thickness, const SDL_Color& color)
+void Graph::DrawBorders(int x, int y, size_t w, size_t h, size_t thickness, const GraphColor& color)
 {
     for (size_t i = 0; i < thickness; i++)
     {
@@ -812,15 +916,17 @@ void Graph::DrawBorders(int x, int y, size_t w, size_t h, size_t thickness, cons
     }
 }
 
-void Graph::DrawLine(int x1, int y1, int x2, int y2, const SDL_Color& color)
+void Graph::DrawLine(int x1, int y1, int x2, int y2, const GraphColor& color)
 {
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+    vertexBufferData[0] = Vertex((GLfloat)x1, (GLfloat)y1, 0);
+    vertexBufferData[1] = Vertex((GLfloat)x2, (GLfloat)y2, 0);
+    vertexAmount = 2;
+    FlushBasicShape(color, GL_LINES);
 }
 
-void Graph::PushAlpha(Uint8 new_alpha)
+void Graph::PushAlpha(GLfloat new_alpha)
 {
-    alphaValues.push(new_alpha / 255.0f);
+    alphaValues.push(new_alpha);
 }
 
 void Graph::PopAlpha()
@@ -840,7 +946,12 @@ void Graph::ClearAlpha()
 
 void Graph::PushTextureColorValues(Uint8 r, Uint8 g, Uint8 b)
 {
-    textureColorValues.push(SDL_Color{ r, g, b, 0 });
+    textureColorValues.push(GraphColor{ r / 255.0f, g / 255.0f, b / 255.0f, 0 });
+}
+
+void Graph::PushTextureColorValues(GraphColor& c)
+{
+    textureColorValues.push(c);
 }
 
 void Graph::PopTextureColorValue()

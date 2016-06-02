@@ -54,6 +54,7 @@ namespace EngineTimer
         double GonePart();
 
         bool IsActive();
+        void Deactivate();
     };
 }
 

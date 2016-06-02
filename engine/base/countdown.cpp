@@ -81,6 +81,14 @@ bool CountdownTimer::IsActive()
     return is_active;
 }
 
+
+void CountdownTimer::Deactivate()
+{
+    start_time = 0;
+    duration = 0;
+    is_active = false;
+}
+
 void EngineTimer::StartTimer(const std::string& timerName, size_t duration)
 {
     timers[timerName] = CountdownTimer(duration);

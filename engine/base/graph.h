@@ -139,14 +139,12 @@ private:
 
     SDL_Color bgColor;
 
-    SDL_Renderer* renderer;
-
     std::vector<std::auto_ptr<TextureRecord>> spriteList;
     TextureIdMap preloadedSprites;
     FontList fonts;
 
     std::stack<GLfloat> alphaValues;
-    std::stack<SDL_Color> textureColorValues;
+    std::stack<GraphColor> textureColorValues;
 
 	int shakeDeltaX;
 	int shakeDeltaY;
@@ -163,9 +161,16 @@ private:
 
     GLuint shapeProgramId;
     GLuint textureProgramId;
+    GLuint scenePostProcessingShader;
+
+    GLuint frameBuffer;
+    TextureRecord frameBufferTexture;
+
+    SDL_RendererFlip postProcFlip;
 
 public:
     const SDL_Color BLACK;
+    GLuint outlineProgramId;
 
     Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& caption);
     ~Graph();
@@ -173,6 +178,7 @@ public:
     const int &GetHeight() const;
 
     void FlushTextures(GLuint texId, SDL_RendererFlip flip);
+    void FlushTextures(GLuint program, GLuint texId, SDL_RendererFlip flip);
     void FlushBasicShape(const GraphColor& color, GLenum mode);
     void ToggleFullscreen();
 	bool IsInFullScreen() const;
@@ -182,34 +188,55 @@ public:
     void Flip();
     void FillScreen(const SDL_Color& color);
     void ClrScr();
-    void PutPixel(int x, int y, const SDL_Color& color);
+    void PutPixel(int x, int y, const GraphColor& color);
 
     void GetTextSize(const FontDescriptor& fontHandler, const std::string& str, int* w, int* h);
     void WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y);
-    void WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y, const SDL_Color& color);
+    void WriteNormal(const FontDescriptor& fontHandler, const std::string& str, int x, int y, const SDL_Color& color, GLfloat scale = 1.0f);
+
+    void SetPostProcessingProgram(GLuint program, SDL_RendererFlip flip);
+    void ResetPostprocessingProgram();
+
+    void ApplyShaderToScene(GLuint program);
+    void FlushBuffer(GLuint shaderProgram, bool startNew = false);
 
     void WriteBorderedText(const FontDescriptor& fontHandler,
                            const std::string& str,
-                           int x,
-                           int y,
+                           GLfloat x,
+                           GLfloat y,
                            const SDL_Color& color,
-                           const SDL_Color& borderColor);
+                           SDL_Color borderColor,
+                           GLfloat scale = 1.0f);
 
     void WriteParagraph(const FontDescriptor& fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color);
+    void WriteBorderedParagraph(const FontDescriptor& fontHandler, const std::string& str, int x, int y, int maxW, size_t allowedBarrier, const SDL_Color& color, SDL_Color borderColor);
 
     int GetLastWrittenParagraphH() const;
 
-    void FillRect(int x1, int y1, int x2, int y2, const SDL_Color& color);
     void DrawRect(int x, int y, size_t w, size_t h, const GraphColor& color);
-    void DrawBorders(int x, int y, size_t w, size_t h, size_t thickness, const SDL_Color& color);
+    void DrawBorders(int x, int y, size_t w, size_t h, size_t thickness, const GraphColor& color);
 
     void DrawTexture(GLfloat x, GLfloat y, sprite_id texture);
     void DrawTexture(GLfloat x, GLfloat y, TextureRecord* texture);
+    void DrawTexture(GLuint shaderProgramId, GLfloat x, GLfloat y, TextureRecord* texture);
 
     void DrawTexture(const SDL_Rect* destRect, sprite_id texture, const SDL_Rect* texPart, const double angle, const SDL_RendererFlip flip);
+    void DrawTexture(GLuint shaderProgramId,
+                     const SDL_Rect* destRect,
+                     sprite_id texture,
+                     const SDL_Rect* texPart,
+                     const double angle,
+                     const SDL_RendererFlip flip);
+    void DrawTexture(GLuint shaderProgramId,
+                    const SDL_Rect* destRect,
+                    TextureRecord* texture,
+                    const SDL_Rect* texPart,
+                    const double angle,
+                    const SDL_RendererFlip flip);
 
     void DrawTextureStretched(TextureRecord* texture); //fullscreen
     void DrawTextureStretched(GLfloat tx, GLfloat ty, GLfloat tw, GLfloat th, TextureRecord* texture); //fixed width
+    void DrawTextureStretched(GLuint shaderProgramId, GLfloat tx, GLfloat ty, GLfloat tw, GLfloat th, TextureRecord* texture); //fixed width
 
     sprite_id LoadTexture(std::string filename);
 
@@ -224,15 +251,16 @@ public:
     void GrayScaleFilter(int x, int y, size_t w, size_t h);
     void ApplyFilter(int x, int y, size_t w, size_t h, SDL_Color& color);
 
-    void DrawLine(int x1, int y1, int x2, int y2, const SDL_Color& color);
+    void DrawLine(int x1, int y1, int x2, int y2, const GraphColor& color);
 
     void SetViewPort(int x, int y, size_t w, size_t h);
 
-    void PushAlpha(Uint8 new_alpha);
+    void PushAlpha(GLfloat new_alpha);
     void PopAlpha();
     void ClearAlpha(); // clear all alpha values
 
     void PushTextureColorValues(Uint8 r, Uint8 g, Uint8 b);
+    void PushTextureColorValues(GraphColor& c);
     void PopTextureColorValue();
 
     void HideCursor();
@@ -245,7 +273,7 @@ public:
     void SwitchCursor(CursorType type);
 
 private:
-    void WriteText(TTF_Font* f, const std::string& str, int x, int y, const SDL_Color& color);
+    void WriteText(TTF_Font* f, const std::string& str, int x, int y, const SDL_Color& color, GLfloat scale = 1.0f);
 
 };
 

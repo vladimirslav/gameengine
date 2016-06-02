@@ -40,22 +40,53 @@ void UiObject::ResetStates()
     isClicked = false;
 }
 
+void UiObject::Highlight()
+{
+    isHighlighted = true;
+}
+
+void UiObject::DisableHighlight()
+{
+    isHighlighted = false;
+}
+
 void UiObject::StartDraw()
 {
+    if (flashingTime > 0)
+    {
+        if (flashCountdown.IsActive() == false)
+        {
+            flashCountdown.Reset(flashingTime);
+        }
+    }
+
     if (fadeMode == FadeMode::FADE_TO_BG)
     {
         switch (fadeState)
         {
         case FadeState::FADE_IN:
-            g->PushAlpha(static_cast<Uint8>(fadeCountdown.GonePart() * 255));
+            g->PushAlpha((GLfloat)fadeCountdown.GonePart());
             break;
         case FadeState::FADE_OUT:
-            g->PushAlpha(static_cast<Uint8>(fadeCountdown.RemainingPart() * 255));
+            g->PushAlpha((GLfloat)fadeCountdown.RemainingPart());
             break;
         default:
             break;
         }
     }
+}
+
+void UiObject::Flash(size_t ftime, GLuint flashProgram)
+{
+    flashingProgram = flashProgram;
+    flashingTime = ftime;
+    flashCountdown.Reset(ftime);
+}
+
+void UiObject::DisableFlash()
+{
+    flashingTime = 0;
+    flashCountdown.Deactivate();
 }
 
 void UiObject::Draw()
@@ -112,7 +143,6 @@ bool UiObject::IsClicked()
 
 void UiObject::EndDraw()
 {
-
     if (fadeMode == FadeMode::SPRITE_FADE)
     {
         Uint8 currentAlpha = 0;

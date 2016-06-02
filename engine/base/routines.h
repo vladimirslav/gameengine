@@ -33,6 +33,7 @@ namespace EngineRoutines
 
     void InitRand();
     int GetRand(int min, int max);
+    float GetRandF();
 
     class SettingsFile
     {
