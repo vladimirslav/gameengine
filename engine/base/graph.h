@@ -120,8 +120,16 @@ private:
     int w;
     int h;
 
+    GLfloat orthoLeft;
+    GLfloat orthoRight;
+    
+    GLfloat orthoTop;
+    GLfloat orthoBottom;
+
 	int screenW;
 	int screenH;
+
+    bool recheckWH;
 
     static const int MAX_BUFF_LEN = 12;
     int vertexAmount;
@@ -161,12 +169,15 @@ private:
 
     GLuint shapeProgramId;
     GLuint textureProgramId;
+    GLuint defaultSceneProcessingShader;
     GLuint scenePostProcessingShader;
 
     GLuint frameBuffer;
     TextureRecord frameBufferTexture;
 
     SDL_RendererFlip postProcFlip;
+    int prevX;
+    int prevY;
 
 public:
     const SDL_Color BLACK;
@@ -177,8 +188,11 @@ public:
     const int &GetWidth() const;
     const int &GetHeight() const;
 
+    GLfloat AdjustMouseX(int mx) const;
+    GLfloat AdjustMouseY(int my) const;
+
     void FlushTextures(GLuint texId, SDL_RendererFlip flip);
-    void FlushTextures(GLuint program, GLuint texId, SDL_RendererFlip flip);
+    void FlushTextures(GLuint program, GLuint texId, SDL_RendererFlip flip, bool useCustomOrtho = true);
     void FlushBasicShape(const GraphColor& color, GLenum mode);
     void ToggleFullscreen();
 	bool IsInFullScreen() const;
@@ -196,6 +210,7 @@ public:
 
     void SetPostProcessingProgram(GLuint program, SDL_RendererFlip flip);
     void ResetPostprocessingProgram();
+    void HideEdges();
 
     void ApplyShaderToScene(GLuint program);
     void FlushBuffer(GLuint shaderProgram, bool startNew = false);
@@ -233,6 +248,8 @@ public:
                     const SDL_Rect* texPart,
                     const double angle,
                     const SDL_RendererFlip flip);
+
+    void DrawScene(GLuint shaderProgramId);
 
     void DrawTextureStretched(TextureRecord* texture); //fullscreen
     void DrawTextureStretched(GLfloat tx, GLfloat ty, GLfloat tw, GLfloat th, TextureRecord* texture); //fixed width
@@ -274,7 +291,7 @@ public:
 
 private:
     void WriteText(TTF_Font* f, const std::string& str, int x, int y, const SDL_Color& color, GLfloat scale = 1.0f);
-
+    void RegenFrameBuffer();
 };
 
 GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path);

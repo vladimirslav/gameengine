@@ -102,8 +102,10 @@ void UiObject::Update(const SDL_Event& event)
     isClicked = false;
     if (event.type == SDL_MOUSEMOTION)
     {
-        if (event.motion.x >= x && event.motion.x <= x + static_cast<int>(width) &&
-            event.motion.y >= y && event.motion.y <= y + static_cast<int>(height))
+        int mx = (int)g->AdjustMouseX(event.motion.x);
+        int my = (int)g->AdjustMouseY(event.motion.y);
+        if (g->AdjustMouseX(event.motion.x) >= x && g->AdjustMouseX(event.motion.x) <= x + static_cast<int>(width) &&
+            g->AdjustMouseY(event.motion.y) >= y && g->AdjustMouseY(event.motion.y) <= y + static_cast<int>(height))
         {
             mouseOver = true;
         }

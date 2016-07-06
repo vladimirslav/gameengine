@@ -81,10 +81,10 @@ namespace EngineWindow
         case SDL_MOUSEMOTION:
         {
             index = -1;
-            if (event.motion.x > x &&
-                event.motion.x < x + static_cast<int>(width) &&
-                event.motion.y > y &&
-                event.motion.y < y + static_cast<int>(height))
+            if (g->AdjustMouseX(event.motion.x) > x &&
+                g->AdjustMouseX(event.motion.x) < x + static_cast<int>(width) &&
+                g->AdjustMouseY(event.motion.y) > y &&
+                g->AdjustMouseY(event.motion.y) < y + static_cast<int>(height))
             {
                 g->SwitchCursor(CursorType::ARROW);
                 for (size_t i = 0; i < objectList.size(); i++)
@@ -98,8 +98,8 @@ namespace EngineWindow
                         {
 							EventHandling::SendEvent(EventHandling::Event{WINDOW_EVENT_MENU_MOVE, nullptr});
                             prevIndex = index;
+                            objectList[i]->FadeIn(FadeMode::FADE_TO_BG, 0, 200);
                         }
-                        objectList[i]->FadeIn(FadeMode::FADE_TO_BG, 0, 200);
                         break;
                     }
                 }

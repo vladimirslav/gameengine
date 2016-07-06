@@ -35,7 +35,7 @@ typedef std::unordered_map<std::string, ANIM_INFO> animation_list;
 enum DIRECTION
 {
     DIRECTION_LEFT,
-    DIRECTION_RIGHT
+    DIRECTION_RIGHT,
 };
 
 class Sprite

@@ -55,7 +55,15 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
     , currentCursorType(CursorType::ARROW)
 	, isFullScreen(false)
     , vertexAmount(0)
+    , orthoLeft(0)
+    , orthoTop(0)
+    , orthoRight((GLfloat)w)
+    , orthoBottom((GLfloat)h)
+    , frameBuffer(0)
+    , recheckWH(false)
     , postProcFlip(SDL_FLIP_VERTICAL)
+    , prevX(0)
+    , prevY(0)
 {
     SDL_SetAssertionHandler(EngineRoutines::handler, NULL);
 
@@ -64,7 +72,7 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
 
     SDL_assert_release(SDL_GetDesktopDisplayMode(0, &displayMode) == 0);
 
-    screen = SDL_CreateWindow(caption.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenW, screenH, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+    screen = SDL_CreateWindow(caption.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenW, screenH, SDL_WINDOW_OPENGL);
     SDL_assert_release(screen != NULL);
 
     context = SDL_GL_CreateContext(screen);
@@ -94,7 +102,9 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
     textureProgramId = LoadShaders("effects/texv.glsl", "effects/texf.glsl");
     outlineProgramId = LoadShaders("effects/texv.glsl", "effects/outline.glsl");
 
-    scenePostProcessingShader = textureProgramId;
+    scenePostProcessingShader = LoadShaders("effects/scenev.glsl", "effects/scenet.glsl");
+    defaultSceneProcessingShader = scenePostProcessingShader;
+    //scenePostProcessingShader = textureProgramId;
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_DEPTH_TEST);
@@ -107,7 +117,20 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
     glBindBuffer(GL_ARRAY_BUFFER, texVertBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(texVertBuffData), texVertBuffData, GL_DYNAMIC_DRAW);
 
-    PrepareScreen();
+    RegenFrameBuffer();
+    GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+
+    glDrawBuffers(1, DrawBuffers);
+    SDL_assert_release(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+
+}
+
+void Graph::RegenFrameBuffer()
+{
+    if (frameBuffer != 0)
+    {
+        glDeleteFramebuffers(1, &frameBuffer);
+    }
 
     glGenFramebuffers(1, &frameBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
@@ -118,7 +141,7 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
     glGenTextures(1, &frameBufferTexture.texId);
     glBindTexture(GL_TEXTURE_2D, frameBufferTexture.texId);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _screen_w, _screen_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenW, screenH, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -126,11 +149,7 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, frameBufferTexture.texId, 0);
-    GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-
-    glDrawBuffers(1, DrawBuffers);
-    SDL_assert_release(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-
+    PrepareScreen();
 }
 
 static const GLfloat g_vertex_buffer_data[] = {
@@ -141,18 +160,58 @@ static const GLfloat g_vertex_buffer_data[] = {
 
 void Graph::PrepareScreen()
 {
-    static const GLfloat BASE_ORTHO[] = {
+
+    GLfloat ratioLogical = (GLfloat)w / (GLfloat)h;
+    GLfloat ratioActual = (GLfloat)screenW / (GLfloat)screenH;
+
+    orthoTop = 0;
+    orthoBottom = (float)h;
+
+    orthoLeft = 0;
+    orthoRight = (float)w;
+
+    if (std::abs(ratioActual - ratioLogical) > 0.01)
+    {
+        if (ratioActual > ratioLogical)
+        {
+            // screen is wider
+            GLfloat marginX = (screenH * ratioLogical - screenW) / 2.0f;
+            orthoLeft = marginX;
+            orthoRight = w - marginX;
+        }
+        else
+        {
+            GLfloat marginY = (screenW * ratioActual - screenH) / 2.0f;
+            orthoTop = marginY;
+            orthoBottom = h - marginY;
+        }
+    }
+
+    static const GLfloat BASE_ORTHO[16] = {
         2.f, 0.f, 0.f, 0.f,
-        0.f, -2.f, 0.f, 0.f,
+        0.f, 2.f, 0.f, 0.f,
         0.f, 0.f, 0.f, 0.f,
-        -1.f, 1.f, 0.f, 1.f,
+       -1.f, 1.f, 0.f, 1.f,
     };
     memcpy(orthoProj, BASE_ORTHO, sizeof(BASE_ORTHO));
     // see here: https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
-    orthoProj[0] /= w;
-    orthoProj[5] /= h;
+    orthoProj[0] /= (orthoRight - orthoLeft);
+    orthoProj[5] /= (orthoTop - orthoBottom);
 
-    glViewport(0, 0, w, h);
+    orthoProj[12] = -(orthoRight + orthoLeft) / (orthoRight - orthoLeft);
+    float oT = orthoTop;
+    float oB = orthoBottom;
+    orthoProj[13] = -(orthoTop + orthoBottom) / (orthoTop - orthoBottom);
+}
+
+GLfloat Graph::AdjustMouseX(int mx) const
+{
+    return orthoLeft + (( (GLfloat)mx / screenW ) * (orthoRight - orthoLeft));
+}
+
+GLfloat Graph::AdjustMouseY(int my) const
+{
+    return orthoTop + (( (GLfloat)my / screenH) * (orthoBottom - orthoTop));
 }
 
 void Graph::FlushTextures(GLuint texId, SDL_RendererFlip flip)
@@ -160,16 +219,12 @@ void Graph::FlushTextures(GLuint texId, SDL_RendererFlip flip)
     FlushTextures(textureProgramId, texId, flip);
 }
 
-void Graph::FlushTextures(GLuint program, GLuint texId, SDL_RendererFlip flip)
+void Graph::FlushTextures(GLuint program, GLuint texId, SDL_RendererFlip flip, bool useCustomortho)
 {
     glEnable(GL_TEXTURE_2D);
     glUseProgram(program);
-
-    static GLfloat mtx[16];
-
-    glGetFloatv(GL_PROJECTION_MATRIX, mtx);
-    glUniformMatrix4fv(glGetUniformLocation(textureProgramId, "MVP"), 1, GL_FALSE, mtx);
-
+    
+    glUniformMatrix4fv(glGetUniformLocation(program, "MVP"), 1, GL_FALSE, orthoProj);
     glBindBuffer(GL_ARRAY_BUFFER, texVertBuffer);
     glBufferSubData(GL_ARRAY_BUFFER, 0, textureVertexAmount * sizeof(TexturedVertex), texVertBuffData);
 
@@ -192,9 +247,9 @@ void Graph::FlushTextures(GLuint program, GLuint texId, SDL_RendererFlip flip)
     flips[0] = (GLfloat)((flip & SDL_FLIP_HORIZONTAL) > 0 ? 1 : 0) * (texVertBuffData[0].u + texVertBuffData[4].u);
     flips[1] = (GLfloat)((flip & SDL_FLIP_VERTICAL) > 0 ? 1 : 0) * (texVertBuffData[0].v + texVertBuffData[4].v);
      
-    glUniform2f(glGetUniformLocation(textureProgramId, "flip"), flips[0], flips[1]);
+    glUniform2f(glGetUniformLocation(program, "flip"), flips[0], flips[1]);
 
-    glUniform4f(glGetUniformLocation(textureProgramId, "colorMod"), 
+    glUniform4f(glGetUniformLocation(program, "colorMod"),
                 textureColorValues.top().r,
                 textureColorValues.top().g,
                 textureColorValues.top().b,
@@ -229,12 +284,17 @@ Graph::~Graph()
     TTF_Quit();
 
     glDeleteTextures(1, &frameBufferTexture.texId);
+    if (frameBuffer != 0)
+    {
+        glDeleteFramebuffers(1, &frameBuffer);
+    }
     glDeleteBuffers(1, &vertexBuffer);
     glDeleteBuffers(1, &texVertBuffer);
 
     glDeleteProgram(textureProgramId);
     glDeleteProgram(outlineProgramId);
     glDeleteProgram(shapeProgramId);
+    glDeleteProgram(scenePostProcessingShader);
 
     SDL_FreeCursor(cursor);
     SDL_GL_DeleteContext(context);
@@ -308,15 +368,15 @@ void Graph::ClrScr()
         }
 	}
 
-
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
     glViewport(0, 0, screenW, screenH);
     glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
-
     glMatrixMode(GL_PROJECTION);
-    glOrtho(0.0f, w, h, 0.0f, 0.0f, 1.0f);
+
 
     if (xdelta != 0 && ydelta != 0)
     {
@@ -334,7 +394,22 @@ void Graph::SetPostProcessingProgram(GLuint program, SDL_RendererFlip _postProcF
 void Graph::ResetPostprocessingProgram()
 {
     postProcFlip = SDL_FLIP_VERTICAL;
-    scenePostProcessingShader = textureProgramId;
+    scenePostProcessingShader = defaultSceneProcessingShader;
+}
+
+void Graph::HideEdges()
+{
+    if ((size_t)(orthoRight - orthoLeft) != w)
+    {
+        if (orthoLeft < 0)
+        {
+            DrawRect((int)orthoLeft, (int)orthoTop, (size_t)-orthoLeft, (size_t)(orthoBottom - orthoTop), { 0, 0, 0, 1 });
+        }
+        if (orthoRight - w > 0)
+        {
+            DrawRect(w, (int)orthoTop, (size_t)(orthoRight - w), (size_t)(orthoBottom - orthoTop), { 0, 0, 0, 1 });
+        }
+    }
 }
 
 void Graph::ApplyShaderToScene(GLuint program)
@@ -348,10 +423,11 @@ void Graph::FlushBuffer(GLuint shaderProgram, bool startNew)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     SDL_Rect destRect{ 0, 0, w, h };
-    //glOrtho(0.0f, w, h, 0.0f, 0.0f, 1.0f);
-    DrawTexture(shaderProgram, &destRect, &frameBufferTexture, &destRect, 0, postProcFlip);
+
+    DrawScene(shaderProgram);
     if (startNew)
     {
+
         glClearColor(0, 0, 0, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -374,6 +450,12 @@ void Graph::Flip()
     FlushBuffer(scenePostProcessingShader, false);
 
     SDL_GL_SwapWindow(screen);
+
+    if (recheckWH)
+    {        
+        RegenFrameBuffer();
+        recheckWH = false;
+    }
 }
 
 /*
@@ -536,18 +618,6 @@ void Graph::WriteParagraph(const FontDescriptor& fontHandler, const std::string&
     SDL_FreeSurface(message);
 
     PopAlpha();
-    /*
-    SDL_Texture* preparedMsg = SDL_CreateTextureFromSurface(renderer, message);
-    SDL_assert_release(preparedMsg != NULL);
-    SDL_Rect dstrect;
-    dstrect.x = x;
-    dstrect.y = y;
-    SDL_assert_release(SDL_QueryTexture(preparedMsg, NULL, NULL, &dstrect.w, &dstrect.h) == 0);
-    SDL_assert_release(SDL_RenderCopy(renderer, preparedMsg, NULL, &dstrect) == 0);
-    SDL_FreeSurface(message);
-    SDL_DestroyTexture(preparedMsg);
-    */ 
-    return;
 }
 
 int Graph::GetLastWrittenParagraphH() const
@@ -565,11 +635,8 @@ void Graph::FlushBasicShape(const GraphColor& color, GLenum mode)
     glUseProgram(shapeProgramId);
     glUniform4f(glGetUniformLocation(shapeProgramId, "colorval"), color.r, color.g, color.b, color.a);
     
-    static GLfloat mtx[16];
-    glGetFloatv(GL_PROJECTION_MATRIX, mtx);
-
     //glUniformMatrix4fv(glGetUniformLocation(shapeProgramId, "MVP"), 1, GL_FALSE, mtx);
-    glUniformMatrix4fv(glGetUniformLocation(shapeProgramId, "MVP"), 1, GL_FALSE, mtx);
+    glUniformMatrix4fv(glGetUniformLocation(shapeProgramId, "MVP"), 1, GL_FALSE, orthoProj);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -737,6 +804,31 @@ void Graph::DrawTexture(GLuint shaderProgramId, const SDL_Rect* destRect, Textur
     FlushTextures(shaderProgramId, tex->texId, flip);
 }
 
+void Graph::DrawScene(GLuint shaderProgramId)
+{
+    float tx = -1;
+    float ty = -1;
+    float tw = 2;
+    float th = 2;
+
+    float ux = 0;
+    float uy = 0;
+    float uh = 1;
+    float uw = 1;
+
+    texVertBuffData[0] = TexturedVertex(tx, ty, 0.0f, ux, uy);
+    texVertBuffData[1] = TexturedVertex(tx, ty + th, 0.0f, ux, uy + uh);
+    texVertBuffData[2] = TexturedVertex(tx + tw, ty, 0.0f, ux + uw, uy);
+
+    texVertBuffData[3] = texVertBuffData[1];
+    texVertBuffData[4] = TexturedVertex(tx + tw, ty + th, 0, ux + uw, uy + uh);
+    texVertBuffData[5] = texVertBuffData[2];
+
+    textureVertexAmount = 6;
+
+    FlushTextures(shaderProgramId, frameBufferTexture.texId, SDL_FLIP_NONE, false);
+}
+
 TextureRecord* Graph::GetTexture(sprite_id id) const
 {
     if (spriteList.size() > id)
@@ -831,13 +923,35 @@ void Graph::ToggleFullscreen()
 	if (isFullScreen)
 	{
 		isFullScreen = false;
-		SDL_assert_release(SDL_SetWindowFullscreen(screen, 0) == 0);
+        screenW = w;
+        screenH = h;
+        SDL_SetWindowSize(screen, screenW, screenH);
+        SDL_SetWindowPosition(screen, prevX, prevY);
+        SDL_SetWindowFullscreen(screen, 0);
+        SDL_SetWindowBordered(screen, SDL_TRUE);
 	}
 	else
 	{
+        SDL_GetWindowPosition(screen, &prevX, &prevY);
 		isFullScreen = true;
-		SDL_assert_release(SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN) == 0);
+        SDL_DisplayMode dm;
+        for (int i = 0; i < SDL_GetNumVideoDisplays(); i++)
+        {
+            SDL_assert_release(SDL_GetCurrentDisplayMode(i, &dm) == 0);
+            if (dm.w > screenW)
+            {
+                screenW = dm.w;
+                screenH = dm.h;
+            }
+        }
+
+        SDL_SetWindowSize(screen, screenW, screenH);
+        SDL_SetWindowPosition(screen, 0, 0);
+        SDL_SetWindowBordered(screen, SDL_FALSE);
+        SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN_DESKTOP);
 	}
+    RegenFrameBuffer();
+    recheckWH = true;
 }
 
 bool Graph::IsInFullScreen() const

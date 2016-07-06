@@ -59,7 +59,6 @@ void GameScreen::ProcessEvent(SDL_Event& event)
 void GameScreen::StartDraw()
 {
     g->ClrScr();
-	g->SetViewPort(0, 0, width, height);
     GameWindow::StartDraw();
 }
 
@@ -168,8 +167,8 @@ void SelectionScreen::ProcessEvent(SDL_Event& event)
     else if (event.type == SDL_MOUSEMOTION)
     {
         keyStates[SDL_SCANCODE_RETURN] = false;
-        mousex = event.motion.x;
-        mousey = event.motion.y;
+        mousex = (int)g->AdjustMouseX(event.motion.x);
+        mousey = (int)g->AdjustMouseY(event.motion.y);
         for (size_t i = 0; i < buttonAmount; i++)
         {
             if (buttons[i]->x <= mousex && buttons[i]->x + buttons[i]->width  >= mousex &&
