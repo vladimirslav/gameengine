@@ -1,5 +1,5 @@
-#version 330 core
-layout(location = 0) in vec3 vertexPosition_modelspace;
+#version 140
+in vec3 vertexPosition_modelspace;
 
 uniform mat4 MVP;
 

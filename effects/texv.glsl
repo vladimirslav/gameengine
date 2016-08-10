@@ -1,7 +1,7 @@
-#version 330 core
+#version 140
 
-layout(location = 0) in vec3 vertexPosition_modelspace;
-layout(location = 1) in vec2 vertexUV;
+in vec3 vertexPosition_modelspace;
+in vec2 vertexUV;
 
 out vec2 UV;
 
@@ -10,6 +10,6 @@ uniform vec2 flip;
 
 void main()
 {
-    gl_Position = MVP * vec4(vertexPosition_modelspace, 1);
+    gl_Position =  MVP * vec4(vertexPosition_modelspace, 1);
     UV = abs(vertexUV.st - flip);
 }

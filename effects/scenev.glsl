@@ -1,6 +1,7 @@
-#version 330 core
-layout(location = 0) in vec3 vertexPosition_modelspace;
-layout(location = 1) in vec2 vertexUV;
+#version 140
+
+in vec3 vertexPosition_modelspace;
+in vec2 vertexUV;
 
 out vec2 UV;
 

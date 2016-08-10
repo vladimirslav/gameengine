@@ -99,10 +99,20 @@ Graph::Graph(int _w, int _h, int _screen_w, int _screen_h, const std::string& ca
     SDL_SetCursor(cursor);
 
     shapeProgramId = LoadShaders("effects/baseshapev.glsl", "effects/baseshapef.glsl");
+    //glBindAttribLocation(shapeProgramId, 0, "vertexPosition_modelspace");
+
     textureProgramId = LoadShaders("effects/texv.glsl", "effects/texf.glsl");
+    //glBindAttribLocation(textureProgramId, 0, "vertexPosition_modelspace");
+    //glBindAttribLocation(textureProgramId, 1, "vertexUV");
+
     outlineProgramId = LoadShaders("effects/texv.glsl", "effects/outline.glsl");
+    //glBindAttribLocation(outlineProgramId, 0, "vertexPosition_modelspace");
+    //glBindAttribLocation(outlineProgramId, 1, "vertexUV");
 
     scenePostProcessingShader = LoadShaders("effects/scenev.glsl", "effects/scenet.glsl");
+    //glBindAttribLocation(scenePostProcessingShader, 0, "vertexPosition_modelspace");
+    //glBindAttribLocation(scenePostProcessingShader, 1, "vertexUV");
+
     defaultSceneProcessingShader = scenePostProcessingShader;
     //scenePostProcessingShader = textureProgramId;
     glEnable(GL_BLEND);
